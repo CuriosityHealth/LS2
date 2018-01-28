@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <div class="row ls2-subheader">
+    <p class="ls2-subheader-text">LS2 System Status</p>
+  </div>
+
+  <div class="row ls2-subcontainer">
+    <div class="col-md-6 center-block">
+      <table class="table table-borderd ls2-table" style="width:100%">
+          <tr>
+            <th></th>
+            <th>Plugin</th>
+            <th>Status</th>
+            <th>Time</th>
+          </tr>
+          {% for plugin in plugins %}
+          <tr class="ls2-cell">
+              <td class="health_check_status_{{ plugin.status }}"></td>
+              <td>{{ plugin.identifier }}</td>
+              <td>{{ plugin.pretty_status }}</td>
+              <td>{{ plugin.time_taken|floatformat:4 }} seconds</td>
+          </tr>
+          {% endfor %}
+      </table>
+    </div>
+  </div>
+
+
+
+{% endblock %}

@@ -1,0 +1,87 @@
+{% load staticfiles %}
+<html>
+    <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+      <meta name="description" content="">
+      <meta name="author" content="">
+        <link rel="icon" href="{% static 'img/favicon.png' %}">
+
+        <title>Curiosity Health LS2</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        {% include 'session_security/all.html' %}
+    </head>
+    <body>
+      <nav class="navbar navbar-default navbar-fixed-top">
+        {% if debug %}
+        <div class="container-fluid navbar-debug">
+        {% else %}
+        <div class="container-fluid">
+        {% endif %}
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{% url 'researcher_home' %}">
+              <img class="logo" alt="Curiosity Health" src="{% static 'img/full_logo.png' %}">
+            </a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+
+
+            {% if debug %}
+            <ul class="nav navbar-nav account">
+              <li>
+                <h1>DEBUG MODE ENABLED</h1>
+              </li>
+            </ul>
+            {% endif %}
+
+            <ul class="nav navbar-nav navbar-right account">
+
+              {% if user.researcher %}
+              <li class="dropdown">
+                <div class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="account-helper"></span>
+                  <img class="account-image" alt="account" src="{% static 'img/account_blue.png' %}">
+                </div>
+                <ul class="dropdown-menu dropdown-menu-right">
+                  <li class="dropdown-header account-dropdown-username">{{ user.username }}</li>
+                  <li role="separator" class="divider"></li>
+                  <li><a class="account-dropdown-link" href="{% url 'password_change' %}">Change Password</a></li>
+                  <li><a class="account-dropdown-link" href="{% url 'researcher_logout' %}">Sign Out</a></li>
+                </ul>
+              </li>
+              {% else %}
+
+              <li class="frame">
+                <span class="account-helper"></span>
+                <img alt="account" class="account-image" src="{% static 'img/account_grey.png' %}">
+              </li>
+              {% endif %}
+
+
+
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+      </nav>
+
+      <div class="content container ls2-container">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        {% block content %}
+        {% endblock %}
+      </div>
+  </body>
+</html>

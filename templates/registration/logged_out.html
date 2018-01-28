@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row ls2-subheader">
+  <p class="ls2-subheader-text">You have successfully logged out.</p>
+</div>
+
+<div class="row ls2-subcontainer">
+  <div class="col-md-6 center-block">
+    <p class="ls2-body-text">
+      <a href="{% url 'researcher_home' %}">Go Home</a> now.
+    </p>
+  </div>
+</div>
+{% endblock %}

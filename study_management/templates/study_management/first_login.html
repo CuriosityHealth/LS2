@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <div class="row ls2-subheader">
+    <p class="ls2-subheader-text">Welcome to the Curiosity Health Study Server </p>
+  </div>
+
+  <div class="row ls2-subcontainer">
+    <div class="col-md-6 center-block">
+      <p class="ls2-body-text">To begin, please change your password to something that only you will know.</p>
+      <p class="ls2-body-text">Please click <a href="{% url 'password_change' %}">here</a> to change your password.</p>
+    </div>
+  </div>
+
+
+{% endblock %}

@@ -1,0 +1,25 @@
+
+<div class="row ls2-subcontainer">
+  <div class="col-md-8 center-block">
+    <table class="table table-borderd ls2-table" style="width:100%">
+      <tr>
+        <th>Username</th>
+        <th>Participant Label</th>
+        <th>Participant ID</th>
+        <th>Last Upload</th>
+      </tr>
+
+      {% for participant in study.participant_set.all %}
+        <tr class="ls2-cell">
+          <td>{{ participant.user.username }}</td>
+          <td>{{ participant.label }}</td>
+          <td>{{ participant.uuid }}</td>
+          <td>{{ participant.last_datapoint_submission_date_string }}</td>
+          {% if show_data_download %}
+          <td><a href="{% url 'study_data_for_participant' study_uuid=study.uuid participant_uuid=participant.uuid %}.json" download>Download</a></td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>

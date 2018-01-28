@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <div class="row ls2-subheader">
+    <p class="ls2-subheader-text">{{ study.name }}</p>
+  </div>
+
+  <div class="row ls2-subcontainer">
+    <div class="col-md-6 center-block">
+      <p class="ls2-body-text">
+        {{ study.description }}
+      </p>
+    </div>
+  </div>
+
+  <div class="row ls2-subcontainer">
+    <div class="col-md-8 center-block">
+      <div class="row">
+        <label for="id_username" class="col-md-2 ls2-body-text">Participant Data</label>
+        <div class="col-md-6 ls2-body-text">
+          <a href="{% url 'all_study_data' study.uuid %}.json" download>Download All Study Data</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row ls2-subcontainer">
+    <div class="col-md-8 center-block">
+      <div class="row">
+        <label for="id_username" class="col-md-2 ls2-body-text">Participants</label>
+        <div class="col-md-6 ls2-body-text">
+          <a href="{% url 'add_participants' study.uuid %}">Add Participants</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "study_management/participant_table.html" with study=study show_data_download=True only %}
+
+{% endblock %}

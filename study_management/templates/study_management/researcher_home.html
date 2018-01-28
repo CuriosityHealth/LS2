@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <div class="row ls2-subheader">
+    <p class="ls2-subheader-text">Your studies</p>
+  </div>
+
+  <div class="row ls2-subcontainer">
+    <div class="col-md-6 center-block">
+      <p class="ls2-body-text">
+        Select a study for more actions:
+      </p>
+    </div>
+    <div class="col-md-6 center-block">
+    <table class="table table-borderd ls2-table" style="width:100%">
+      {% for study in researcher.studies.all %}
+        <tr class="ls2-cell">
+          <td>
+            <p class="ls2-cell-header-text"><a href="{% url 'study_detail' study.uuid %}">{{ study.name }}</a></p>
+            <p class="ls2-cell-detail-text">{{ study.summary }}</p>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+    </div>
+
+  </div>
+  
+{% endblock %}
