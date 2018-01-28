@@ -13,7 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
+# from django.contrib import admin
+from .admin import admin_site
 from django.urls import path, re_path, include
 from django.contrib.auth import views as auth_views
 
@@ -29,7 +30,7 @@ from . import settings
 # check to see if we should enable the admin portal
 if settings.ADMIN_PORTAL_ENABLE:
     admin_patterns = [
-        path(settings.ADMIN_PORTAL_ROOT, admin.site.urls),
+        path(settings.ADMIN_PORTAL_ROOT, admin_site.urls),
     ]
 else:
     admin_patterns = []
