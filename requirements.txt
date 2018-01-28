@@ -1,0 +1,14 @@
+bcrypt==3.1.4
+cffi==1.11.2
+Django==2.0.1
+django-filter==1.1.0
+djangorestframework==3.7.7
+git+https://github.com/jdkizer9/django-easy-audit@f0a0a598144650ef73f71da49fd36c940a200526
+git+git://github.com/yourlabs/django-session-security@3.6.0-rc1
+gunicorn==19.7.1
+psycopg2==2.7.3.2
+pycparser==2.18
+pytz==2017.3
+six==1.11.0
+arrow==0.12.0
+django-health-check==3.3.0
