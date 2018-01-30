@@ -1,0 +1,154 @@
+* {
+  font-family: "Avenir Next";
+}
+
+body {
+  padding-top: 90px;
+  background-color: #E3E3E3;
+}
+
+.row {
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+.navbar {
+  margin-bottom: 20px;
+  min-height: 90px;
+}
+
+.navbar-debug {
+  background-color: #ffa0a0;
+}
+
+.logo {
+  height: 60px;
+}
+
+.account-helper {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.account-image {
+    vertical-align: middle;
+    height: 45px;
+}
+
+.account {
+  padding-right: 20px;
+  height: 90px;
+}
+
+.account-dropdown-username {
+
+  font-size: xx-large;
+
+}
+
+.account-dropdown-text {
+
+  font-size: large;
+
+}
+
+.account-dropdown-link {
+
+  color: #0D4CC2;
+
+}
+
+.ls2-container {
+  width: 100%;
+  align-items: center;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+
+.ls2-subheader {
+  width: 100%;
+  background-color: #5F636B;
+  align-items: center;
+  padding: 20px;
+}
+
+.ls2-subheader-text {
+  font-size: xx-large;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.ls2-subcontainer {
+  padding: 20px;
+  padding-top: 60px;
+  align-self: center;
+}
+
+.center-block {
+  float: none;
+
+}
+
+.ch-button {
+  background-color: #FFFFFF;
+  color: #0D4CC2;
+  font-weight: 600;
+  border-width: 1px;
+  border-color: #0D4CC2;
+  border-radius: 0px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.ch-link-button {
+  color: #0D4CC2;
+  font-weight: 600;
+  border-width: 1px;
+  border-color: #0D4CC2;
+  border-radius: 0px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.ls2-body-text {
+  font-size: large;
+}
+
+.ls2-table {
+
+}
+
+.ls2-table-header {
+
+}
+
+.ls2-cell {
+  background-color: #FFFFFF;
+}
+
+.ls2-cell-header-text {
+
+}
+
+.ls2-cell-detail-text {
+
+}
+
+.health_check_status_1 {
+    background-color: #0f0;
+    width: 2px;
+    padding: 0px;
+    margin: 0px;
+}
+.health_check_status_0 {
+    background-color: #f00;
+    width: 2px;
+    padding: 0px;
+    margin: 0px;
+}

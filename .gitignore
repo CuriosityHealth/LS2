@@ -1,24 +1,8 @@
 #Mac Stuff
 .DS_Store
 
-# Note that this is a sym link, so don't save it
-docker-compose.override.yml
-
-# our .env files hold our secrets, so don't check them in!!
-*.env
-
-# ignore local static collection
-/static/
-
 # ignore our virtual envrionment
 venv/
-
-postgres-data/
-postgres-backups/
-backup-status/
-log/
-logs/
-
 
 # Created by https://www.gitignore.io
 

@@ -27,6 +27,8 @@ SECRET_KEY = os.environ.get('LS2_SECRET_KEY', '')
 # ignore case, check that it matches true for debug
 DEBUG = os.environ.get('LS2_DEBUG', 'false').lower() == 'true'
 
+print(f'DEBUG={DEBUG}')
+
 # we use use a proxy so we need to set use forwarded HOST,
 # see https://docs.djangoproject.com/en/2.0/topics/security/#host-header-validation
 # see https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-USE_X_FORWARDED_HOST
@@ -37,13 +39,14 @@ if DEBUG == False:
     CSRF_COOKIE_SECURE = True
 
 LS2_HOST = os.environ.get('LS2_HOSTNAME')
-if LS2_HOST != None:
-    ALLOWED_HOSTS = [LS2_HOST]
-    CSRF_TRUSTED_ORIGINS = [LS2_HOST]
-else:
-    raise ImproperlyConfigured(
-        _("No Host Specified. Check the LS2_HOSTNAME environment variable")
-    )
+if DEBUG==False:
+    if LS2_HOST != None:
+        ALLOWED_HOSTS = [LS2_HOST]
+        CSRF_TRUSTED_ORIGINS = [LS2_HOST]
+    else:
+        raise ImproperlyConfigured(
+            _("No Host Specified. Check the LS2_HOSTNAME environment variable")
+        )
 
 if DEBUG:
     INTERNAL_IPS = ['172.21.0.4']
