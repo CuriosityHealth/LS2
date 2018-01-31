@@ -6,6 +6,14 @@ ADD . /src/
 
 RUN pip install -r /src/requirements.txt
 
+# SECRET KEY
+# This MUST be replaced by mounting an actual secret file here
+# LS2 will NOT load until it is replaced
+# Generate a key file with "openssl rand -base64 n -out secret.txt"
+# Note that this CAN be rotated with little (not none) impact to system functionality
+# see https://docs.djangoproject.com/en/2.0/ref/settings/#secret-key for more details
+RUN touch /etc/ls2/secret.txt
+
 RUN mkdir /logs
 
 WORKDIR /src

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,15 +20,25 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('LS2_SECRET_KEY', '')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 # LS2_DEBUG env variable is a string,
 # ignore case, check that it matches true for debug
 DEBUG = os.environ.get('LS2_DEBUG', 'false').lower() == 'true'
 
-print(f'DEBUG={DEBUG}')
+# print(f'DEBUG={DEBUG}')
+
+# SECURITY WARNING: keep the secret key used in production secret!
+try:
+    with open('/etc/ls2/secret.txt') as f:
+        SECRET_KEY = f.read().strip()
+        if SECRET_KEY == None or len(SECRET_KEY) < 32:
+            raise ImproperlyConfigured(
+                "Invalid secret key."
+            )
+except:
+    raise ImproperlyConfigured(
+        "Invalid secret key file."
+    )
 
 # we use use a proxy so we need to set use forwarded HOST,
 # see https://docs.djangoproject.com/en/2.0/topics/security/#host-header-validation
