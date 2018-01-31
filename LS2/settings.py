@@ -28,6 +28,7 @@ DEBUG = os.environ.get('LS2_DEBUG', 'false').lower() == 'true'
 # print(f'DEBUG={DEBUG}')
 
 # SECURITY WARNING: keep the secret key used in production secret!
+LS2_HOST = os.environ.get('LS2_HOSTNAME')
 try:
     with open('/etc/ls2/secret.txt') as f:
         SECRET_KEY = f.read().strip()
@@ -49,7 +50,16 @@ if DEBUG == False:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-LS2_HOST = os.environ.get('LS2_HOSTNAME')
+#SECURITY SETTINGS
+
+SECURE_HSTS_SECONDS = 300
+# SECURE_HSTS_PRELOAD = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+
 if DEBUG==False:
     if LS2_HOST != None:
         ALLOWED_HOSTS = [LS2_HOST]
