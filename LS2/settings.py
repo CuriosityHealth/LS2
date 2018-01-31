@@ -161,6 +161,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('LS2_EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = True
 # DEFAULT_FROM_EMAIL = '*******************'
 DEFAULT_FROM_EMAIL = os.environ.get('LS2_FROM_EMAIL', '')
+SERVER_EMAIL = os.environ.get('LS2_FROM_EMAIL', '')
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
