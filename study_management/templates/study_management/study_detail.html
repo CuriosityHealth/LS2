@@ -14,16 +14,22 @@
     </div>
   </div>
 
+  {% if data_export_enabled %}
   <div class="row ls2-subcontainer">
     <div class="col-md-8 center-block">
       <div class="row">
         <label for="id_username" class="col-md-2 ls2-body-text">Participant Data</label>
         <div class="col-md-6 ls2-body-text">
-          <a href="{% url 'all_study_data' study.uuid %}.json" download>Download All Study Data</a>
+          {% if data_download_default %}
+          <a href="{% url 'all_study_data' study.uuid %}.json" download>Export Study Data</a>
+          {% else %}
+          <a href="{% url 'all_study_data' study.uuid %}.json">View Study Data</a>
+          {% endif %}
         </div>
       </div>
     </div>
   </div>
+  {% endif %}
 
   <div class="row ls2-subcontainer">
     <div class="col-md-8 center-block">
@@ -36,6 +42,6 @@
     </div>
   </div>
 
-  {% include "study_management/participant_table.html" with study=study show_data_download=True only %}
+  {% include "study_management/participant_table.html" with study=study data_export_enabled=data_export_enabled data_download_default=data_download_default only %}
 
 {% endblock %}

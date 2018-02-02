@@ -15,8 +15,12 @@
           <td>{{ participant.label }}</td>
           <td>{{ participant.uuid }}</td>
           <td>{{ participant.last_datapoint_submission_date_string }}</td>
-          {% if show_data_download %}
-          <td><a href="{% url 'study_data_for_participant' study_uuid=study.uuid participant_uuid=participant.uuid %}.json" download>Download</a></td>
+          {% if data_export_enabled %}
+            {% if data_download_default %}
+            <td><a href="{% url 'study_data_for_participant' study_uuid=study.uuid participant_uuid=participant.uuid %}.json" download>Export Data</a></td>
+            {% else %}
+            <td><a href="{% url 'study_data_for_participant' study_uuid=study.uuid participant_uuid=participant.uuid %}.json">View Data</a></td>
+            {% endif %}
           {% endif %}
         </tr>
       {% endfor %}

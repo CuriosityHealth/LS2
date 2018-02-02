@@ -173,6 +173,10 @@ EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = os.environ.get('LS2_FROM_EMAIL', '')
 SERVER_EMAIL = os.environ.get('LS2_FROM_EMAIL', '')
 
+## Data Export
+DATA_EXPORT_ENABLED = os.environ.get('LS2_DATA_EXPORT_ENABLED', 'true').lower() == 'true'
+DATA_DOWNLOAD_DEFAULT = os.environ.get('LS2_DATA_DOWNLOAD_DEFAULT', 'false').lower() == 'true'
+
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
