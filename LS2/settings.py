@@ -204,41 +204,46 @@ LOGGING = {
         'default': {
             'level':'DEBUG',
             'filters': ['require_debug_true'],
-            'class':'logging.handlers.RotatingFileHandler',
+            'class':'study_management.logging.TimedCompressedRotatingFileHandler',
+            'when': 'h',
+            'interval': 1,
             'filename': '/logs/default.log',
-            'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
         },
         'django': {
             'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
+            'class':'study_management.logging.TimedCompressedRotatingFileHandler',
+            'when': 'h',
+            'interval': 1,
             'filename': '/logs/django.log',
-            'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
         },
         'request': {
             'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
+            'class':'study_management.logging.TimedCompressedRotatingFileHandler',
+            'when': 'h',
+            'interval': 1,
             'filename': '/logs/request.log',
-            'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
         },
         'server': {
             'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
+            'class':'study_management.logging.TimedCompressedRotatingFileHandler',
+            'when': 'h',
+            'interval': 1,
             'filename': '/logs/server.log',
-            'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
         },
         'audit': {
             'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
+            'class':'study_management.logging.TimedCompressedRotatingFileHandler',
+            'when': 'h',
+            'interval': 1,
             'filename': '/logs/audit.log',
-            'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
         },
