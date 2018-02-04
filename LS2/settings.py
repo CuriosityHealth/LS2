@@ -70,7 +70,15 @@ if DEBUG==False:
         )
 
 if DEBUG:
-    INTERNAL_IPS = ['172.21.0.4']
+
+    from fnmatch import fnmatch
+    class glob_list(list):
+        def __contains__(self, key):
+            for elt in self:
+                if fnmatch(key, elt): return True
+            return False
+
+    INTERNAL_IPS = glob_list(['*'])
 
 ADMIN_PORTAL_ENABLE = os.environ.get('LS2_ADMIN_PORTAL_ENABLE', 'false').lower() == 'true'
 ADMIN_PORTAL_ROOT = os.environ.get('LS2_ADMIN_PORTAL_ROOT', 'admin/')
