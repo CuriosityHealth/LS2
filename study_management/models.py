@@ -100,6 +100,13 @@ class Datapoint(models.Model):
     def __str__(self):
         return str(self.uuid)
 
+    def schema_string(self):
+        version = self.schema_version_string()
+        return f'{self.schema_namespace}:{self.schema_name}:{version}'
+
+    def schema_version_string(self):
+        return f'{self.schema_version_major}.{self.schema_version_minor}.{self.schema_version_patch}'
+
 class PasswordChangeEvent(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
