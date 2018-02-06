@@ -169,17 +169,22 @@ SITE_ID = 1
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST = os.environ.get('LS2_EMAIL_HOST', '')
+EMAIL_HOST = os.environ.get('LS2_EMAIL_HOST')
 # EMAIL_PORT = 587
-EMAIL_PORT = os.environ.get('LS2_EMAIL_PORT', '')
+EMAIL_PORT = os.environ.get('LS2_EMAIL_PORT')
 # EMAIL_HOST_USER = '*******************'
-EMAIL_HOST_USER = os.environ.get('LS2_EMAIL_HOST_USER', '')
+EMAIL_HOST_USER = os.environ.get('LS2_EMAIL_HOST_USER')
 # EMAIL_HOST_PASSWORD = '*******************'
-EMAIL_HOST_PASSWORD = os.environ.get('LS2_EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = True
+EMAIL_HOST_PASSWORD = os.environ.get('LS2_EMAIL_HOST_PASSWORD')
+
+if os.environ.get('LS2_EMAIL_USE_TLS') != None:
+    EMAIL_USE_TLS = os.environ.get('LS2_EMAIL_USE_TLS').lower() == 'true'
+
+if os.environ.get('LS2_EMAIL_USE_SSL') != None:
+    EMAIL_USE_SSL = os.environ.get('LS2_EMAIL_USE_SSL').lower() == 'true'
 # DEFAULT_FROM_EMAIL = '*******************'
-DEFAULT_FROM_EMAIL = os.environ.get('LS2_FROM_EMAIL', '')
-SERVER_EMAIL = os.environ.get('LS2_FROM_EMAIL', '')
+DEFAULT_FROM_EMAIL = os.environ.get('LS2_FROM_EMAIL')
+SERVER_EMAIL = os.environ.get('LS2_FROM_EMAIL')
 
 ## Data Export
 DATA_EXPORT_ENABLED = os.environ.get('LS2_DATA_EXPORT_ENABLED', 'true').lower() == 'true'
