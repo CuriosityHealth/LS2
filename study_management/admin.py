@@ -95,7 +95,8 @@ class DatapointAdmin(admin.ModelAdmin):
         serializer = DatapointSerializer(obj)
         json = JSONRenderer().render(serializer.data, renderer_context={'indent': 4})
         html = '<pre>' + json.decode("utf-8", "strict") + '</pre>'
-        return mark_safe(html)
+        # return mark_safe(html)
+        return json.decode("utf-8", "strict")
 
     datapoint_prettified.short_description = 'Datapoint'
 
