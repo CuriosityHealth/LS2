@@ -17,7 +17,13 @@
               {% endif %}
               <label for="{{ field.id_for_label }}" class="col-sm-2 col-form-label">{{ field.label }}</label>
               <div class="col-sm-10">
+                {% if field.id_for_label == "id_password1" %}
+                <input type="password" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control" placeholder="{{ field.label }}" required>
+                {% elif field.id_for_label == "id_password2" %}
+                <input type="password" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control" placeholder="{{ field.label }}" required>
+                {% else %}
                 <input type="text" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control" placeholder="{{ field.label }}" required>
+                {% endif %}
               </div>
 
           </div>
