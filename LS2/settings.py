@@ -29,16 +29,10 @@ DEBUG = os.environ.get('LS2_DEBUG', 'false').lower() == 'true'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 LS2_HOST = os.environ.get('LS2_HOSTNAME')
-try:
-    with open('/etc/ls2/secret.txt') as f:
-        SECRET_KEY = f.read().strip()
-        if SECRET_KEY == None or len(SECRET_KEY) < 32:
-            raise ImproperlyConfigured(
-                "Invalid secret key."
-            )
-except:
+SECRET_KEY = os.environ.get('DJANGO_SECRET')
+if SECRET_KEY == None or len(SECRET_KEY) < 32:
     raise ImproperlyConfigured(
-        "Invalid secret key file."
+        "Invalid secret key."
     )
 
 # we use use a proxy so we need to set use forwarded HOST,

@@ -13,7 +13,8 @@ RUN pip install -r /src/requirements.txt
 # Note that this CAN be rotated with little (not none) impact to system functionality
 # see https://docs.djangoproject.com/en/2.0/ref/settings/#secret-key for more details
 RUN mkdir /etc/ls2
-RUN touch /etc/ls2/secret.txt
+RUN touch /etc/ls2/secrets.txt
+RUN touch /etc/ls2/django_secret.txt
 
 RUN mkdir /logs
 
