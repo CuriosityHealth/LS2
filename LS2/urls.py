@@ -70,6 +70,8 @@ participant_patterns = [
     path('dsu/auth/token/check', rest_views.ParticipantTokenCheck.as_view(), name='participant_token_check'),
     path('dsu/auth/logout', rest_views.ParticipantLogOutView.as_view(), name='participant_logout'),
     path('dsu/dataPoints', rest_views.DatapointCreateView.as_view(), name='dataPoints'),
+    path('dsu/study/configuration', rest_views.StudyConfigurationView.as_view(), name='study_configuration'),
+    path('dsu/public_keys/<uuid:public_key_uuid>', rest_views.PublicKeyView.as_view(), name='public_keys'),
 ]
 
 health_check_patterns = [

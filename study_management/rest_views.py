@@ -10,8 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 
 from .decorators import researcher_login_required
 from .rest_auth import ResearcherSessionAuthentication, ParticipantTokenAuthentication
-from .models import Datapoint, Participant, Researcher, Study
-from .serializers import DatapointSerializer
+from .models import Datapoint, Participant, Researcher, Study, StudyConfiguration
+from .serializers import DatapointSerializer, PublicKeyInfoSerializer, StudyConfigurationSerializer
 
 from easyaudit.settings import REMOTE_ADDR_HEADER
 from easyaudit.models import LoginEvent
@@ -134,6 +134,38 @@ class ParticipantTokenCheck(APIView):
 
     def get(self, request, format=None):
         return Response({"message":"success"}, status.HTTP_200_OK)
+
+class StudyConfigurationView(APIView):
+    authentication_classes = (ParticipantTokenAuthentication,)
+    parser_classes = (parsers.JSONParser,)
+    renderer_classes = (renderers.JSONRenderer,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None):
+        study = request.user.participant.study
+        configuration = study.latest_configuration()
+        if configuration == None:
+            return Response({"message": "Study Configuration Not Found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = StudyConfigurationSerializer(configuration)
+        return Response(serializer.data, status.HTTP_200_OK)
+
+class PublicKeyView(APIView):
+    authentication_classes = (ParticipantTokenAuthentication,)
+    parser_classes = (parsers.JSONParser,)
+    renderer_classes = (renderers.JSONRenderer,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, public_key_uuid, format=None):
+        study = request.user.participant.study
+        try:
+            configuration = study.configurations.get(public_key_info__uuid=public_key_uuid)
+            public_key_info = configuration.public_key_info
+        except StudyConfiguration.DoesNotExist:
+            return Response({"message": "Key Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PublicKeyInfoSerializer(public_key_info)
+        return Response(serializer.data, status.HTTP_200_OK)
+
 
 class DatapointListView(APIView):
     authentication_classes = (ResearcherSessionAuthentication,)

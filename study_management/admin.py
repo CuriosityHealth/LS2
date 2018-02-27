@@ -5,12 +5,31 @@ from easyaudit.admin import CRUDEventAdmin, LoginEventAdmin, RequestEventAdmin
 from easyaudit.models import CRUDEvent, LoginEvent, RequestEvent
 
 from .models import Study, Researcher, Participant, Datapoint, PasswordChangeEvent, LoginTimeout
+from .models import StudyConfiguration, PublicKeyInfo
 # Register your models here.
 from django.utils.safestring import mark_safe
 from .serializers import DatapointSerializer
 from rest_framework.renderers import JSONRenderer
 
-admin.site.register(Study)
+# class StudyConfigurationAdmin(admin.ModelAdmin):
+#     readonly_fields = ('study', 'version', 'public_key_info', 'created_date', 'encrypt_by_deault')
+#     fields = ('study', 'version', 'public_key_info', 'created_date', 'encrypt_by_deault')
+#
+# admin.site.register(StudyConfiguration, StudyConfigurationAdmin)
+admin.site.register(StudyConfiguration)
+# class PublicKeyInfoAdmin(admin.ModelAdmin):
+#     readonly_fields = ('uuid', 'contents', 'created_date')
+#     fields = ('uuid', 'contents', 'created_date')
+#
+# admin.site.register(PublicKeyInfo, PublicKeyInfoAdmin)
+admin.site.register(PublicKeyInfo)
+
+class StudyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'uuid', 'created_date')
+    readonly_fields = ('uuid', 'created_date', 'latest_configuration')
+    fields = ('name', 'uuid', 'description', 'created_date', 'latest_configuration')
+
+admin.site.register(Study, StudyAdmin)
 admin.site.register(Researcher)
 
 class PasswordChangeEventAdmin(admin.ModelAdmin):

@@ -1,5 +1,28 @@
 from rest_framework import serializers
-from .models import Datapoint
+from .models import Datapoint, PublicKeyInfo, StudyConfiguration
+
+class PublicKeyInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PublicKeyInfo
+        fields = ('uuid', 'contents', 'created_date')
+
+class StudyConfigurationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = StudyConfiguration
+
+        # fields = '__all__'
+        fields = ('created_date', 'encrypt_by_default', 'version', 'study', 'public_key_info')
+
+    public_key_info = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='uuid'
+    )
+
+    study = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='uuid'
+    )
 
 class DatapointSerializer(serializers.ModelSerializer):
     class Meta:

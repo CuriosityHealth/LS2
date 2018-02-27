@@ -8,10 +8,19 @@ import uuid
 import arrow
 
 # Create your models here.
+class PublicKeyInfo(models.Model):
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+    contents = models.TextField()
+    created_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.uuid)
+
 class Study(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
+    created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
@@ -37,6 +46,21 @@ class Study(models.Model):
         else:
             return None
 
+    def latest_configuration(self):
+        try:
+            return self.configurations.all().latest('created_date')
+        except StudyConfiguration.DoesNotExist:
+            return None
+
+class StudyConfiguration(models.Model):
+    study = models.ForeignKey(Study, on_delete=models.PROTECT, related_name='configurations')
+    public_key_info = models.ForeignKey(PublicKeyInfo, on_delete=models.PROTECT, blank=True, null=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    encrypt_by_default = models.BooleanField(default=False)
+    version = models.PositiveSmallIntegerField()
+
+    def __str__(self):
+        return f'{self.study}.{self.version}: {self.created_date}'
 
 class Researcher(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
