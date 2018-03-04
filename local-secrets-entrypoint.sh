@@ -6,6 +6,7 @@
 eval $(cat /etc/ls2/django_secrets.txt | sed 's/^/export /')
 eval $(cat /etc/ls2/db_secrets.txt | sed 's/^/export /')
 export DJANGO_SECRET=$(cat /etc/ls2/django_secret_key.txt)
+export FERNET_KEYS=$(cat /etc/ls2/fernet_keys.txt)
 
 # Call the command
 "$@"

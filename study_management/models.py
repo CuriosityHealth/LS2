@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
+from fernet_fields import EncryptedTextField
+from cryptography.fernet import InvalidToken
 import uuid
 import arrow
 
@@ -28,6 +30,8 @@ class Study(models.Model):
             datapoint = self.datapoint_set.all().latest('ap_source_creation_date_time')
             return datapoint.ap_source_creation_date_time
         except Datapoint.DoesNotExist:
+            return None
+        except InvalidToken:
             return None
 
     def last_datapoint_submission_date_string(self):
@@ -72,6 +76,8 @@ class Participant(models.Model):
             return datapoint.ap_source_creation_date_time
         except Datapoint.DoesNotExist:
             return None
+        except InvalidToken:
+            return None
 
     def last_datapoint_submission_date_string(self):
 
@@ -96,6 +102,7 @@ class Datapoint(models.Model):
     ap_source_creation_date_time = models.DateTimeField()
     ap_source_modality = models.CharField(max_length=32)
     body = JSONField()
+    encrypted_body = EncryptedTextField()
 
     def __str__(self):
         return str(self.uuid)

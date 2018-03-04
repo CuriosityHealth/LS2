@@ -4,6 +4,8 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.shortcuts import render
+from cryptography.fernet import InvalidToken
 
 # from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -159,8 +161,12 @@ class DatapointListView(APIView):
         datapoints = Datapoint.objects.filter(study=study).order_by('created_date_time')
         if participant_uuid is not None:
             datapoints = datapoints.filter(participant__uuid=participant_uuid)
-        serializer = DatapointSerializer(datapoints, many=True)
-        return Response(serializer.data)
+            
+        try:
+            serializer = DatapointSerializer(datapoints, many=True)
+            return Response(serializer.data)
+        except InvalidToken:
+            return render(request, '500.html')
 
 class DatapointCreateView(APIView):
 

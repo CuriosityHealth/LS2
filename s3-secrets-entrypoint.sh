@@ -10,5 +10,6 @@ fi
 eval $(aws s3 cp s3://${SECRETS_BUCKET_NAME}/db_secrets.txt - | sed 's/^/export /')
 eval $(aws s3 cp s3://${SECRETS_BUCKET_NAME}/django_secrets.txt - | sed 's/^/export /')
 export DJANGO_SECRET=$(aws s3 cp s3://${SECRETS_BUCKET_NAME}/django_secret_key.txt -)
+export FERNET_KEYS=$(aws s3 cp s3://${SECRETS_BUCKET_NAME}/fernet_keys.txt -)
 
 "$@"

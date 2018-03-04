@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Datapoint
+import json
 
 class DatapointSerializer(serializers.ModelSerializer):
     class Meta:
@@ -108,6 +109,7 @@ class DatapointSerializer(serializers.ModelSerializer):
             })
 
         body = data.get('body')
+        encrypted_body = json.dumps(data.get('body'))
 
         if not body:
             raise serializers.ValidationError({
@@ -126,7 +128,8 @@ class DatapointSerializer(serializers.ModelSerializer):
             'ap_source_name': ap_source_name,
             'ap_source_creation_date_time': ap_source_creation_date_time,
             'ap_source_modality': ap_source_modality,
-            'body': body
+            'body': body,
+            'encrypted_body': encrypted_body
         }
 
     def to_representation(self, obj):
@@ -155,5 +158,6 @@ class DatapointSerializer(serializers.ModelSerializer):
 
         return {
             'header': header,
-            'body': obj.body
+            'body': obj.body,
+            'encrypted_body': json.loads(obj.encrypted_body)
         }

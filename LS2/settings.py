@@ -85,7 +85,12 @@ if ADMIN_NAME != None and ADMIN_EMAIL != None:
 else:
     ADMINS = []
 
-# Application definition
+## NEW KEYS SHOULD BE ADDED AT THE END OF THE LIST!!!
+fernet_keys_string = os.environ.get('FERNET_KEYS')
+FERNET_KEYS = fernet_keys_string.split('\n')
+FERNET_KEYS.reverse()
+if len(FERNET_KEYS) == 0 or len(FERNET_KEYS[0]) == 0:
+    raise ImproperlyConfigured("No FERNET_KEYS specified")
 
 INSTALLED_APPS = [
     'study_management.apps.StudyManagementConfig',
