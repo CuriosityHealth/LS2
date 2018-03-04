@@ -101,8 +101,7 @@ class Datapoint(models.Model):
     ap_source_name = models.CharField(max_length=128)
     ap_source_creation_date_time = models.DateTimeField()
     ap_source_modality = models.CharField(max_length=32)
-    body = JSONField()
-    encrypted_body = EncryptedTextField()
+    body = EncryptedTextField()
 
     def __str__(self):
         return str(self.uuid)

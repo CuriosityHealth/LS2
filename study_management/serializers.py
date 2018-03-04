@@ -108,8 +108,7 @@ class DatapointSerializer(serializers.ModelSerializer):
                 'header.acquisition_provenance.modality': 'This field is required.'
             })
 
-        body = data.get('body')
-        encrypted_body = json.dumps(data.get('body'))
+        body = json.dumps(data.get('body'))
 
         if not body:
             raise serializers.ValidationError({
@@ -128,8 +127,7 @@ class DatapointSerializer(serializers.ModelSerializer):
             'ap_source_name': ap_source_name,
             'ap_source_creation_date_time': ap_source_creation_date_time,
             'ap_source_modality': ap_source_modality,
-            'body': body,
-            'encrypted_body': encrypted_body
+            'body': body
         }
 
     def to_representation(self, obj):
@@ -158,6 +156,5 @@ class DatapointSerializer(serializers.ModelSerializer):
 
         return {
             'header': header,
-            'body': obj.body,
-            'encrypted_body': json.loads(obj.encrypted_body)
+            'body': json.loads(obj.body)
         }
