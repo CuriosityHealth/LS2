@@ -37,6 +37,8 @@ ADD . /src/
 ## in theory, this could be overwritten by app specific db settings
 RUN cp /src/LS2/database_settings.mssql.py /src/LS2/database_settings.py
 
+ENV LS2_BACKUP_HEALTH_CHECK_ENABLED False
+
 RUN pip install -r /src/requirements.txt
 RUN pip install -r /src/requirements.mssql.txt
 
