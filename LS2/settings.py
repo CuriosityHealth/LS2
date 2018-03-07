@@ -302,7 +302,8 @@ DJANGO_EASY_AUDIT_ADMIN_SHOW_REQUEST_EVENTS = False
 DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = [
     'study_management.PasswordChangeEvent',
     'study_management.Datapoint',
-    'authtoken.Token'
+    'authtoken.Token',
+    'db.TestModel',
 ]
 
 DJANGO_EASY_AUDIT_REMOTE_ADDR_HEADER = 'HTTP_X_REAL_IP'
