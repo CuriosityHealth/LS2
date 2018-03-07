@@ -196,7 +196,6 @@ DATA_DOWNLOAD_DEFAULT = os.environ.get('LS2_DATA_DOWNLOAD_DEFAULT', 'false').low
 # the backup status endpoint will return 500 if a backup hasnt been completed
 # less than 48 hours ago
 LS2_BACKUP_AGE_MINS_MAX = int(os.environ.get('LS2_BACKUP_AGE_MINS_MAX', 48*60))
-print(os.environ.get('LS2_BACKUP_HEALTH_CHECK_ENABLED'))
 LS2_BACKUP_HEALTH_CHECK_ENABLED = os.environ.get('LS2_BACKUP_HEALTH_CHECK_ENABLED', 'true').lower() == 'true'
 
 LOGGING = {
