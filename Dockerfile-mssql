@@ -1,0 +1,57 @@
+FROM python:3.6
+
+ENV PYTHONUNBUFFERED 1
+
+RUN apt-get update && \
+    apt-get -y install python curl unzip && cd /tmp && \
+    curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip" && \
+    unzip awscli-bundle.zip && \
+    ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
+    rm awscli-bundle.zip && rm -rf awscli-bundle
+
+# Add Microsoft repo for Microsoft ODBC Driver 13 for Linux
+RUN apt-get update && apt-get install -y \
+    apt-transport-https \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/8/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update
+
+# Install Dependencies
+RUN ACCEPT_EULA=Y apt-get install -y \
+    unixodbc \
+    unixodbc-dev \
+    libgss3 \
+    odbcinst \
+    msodbcsql \
+    locales \
+    && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
+
+# install SQL Server tools
+RUN apt-get update && ACCEPT_EULA=Y apt-get install -y mssql-tools
+RUN echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+RUN /bin/bash -c "source ~/.bashrc"
+
+ADD . /src/
+
+## override default database settings file for MSSQL specific settings
+## in theory, this could be overwritten by app specific db settings
+RUN cp /src/LS2/database_settings.mssql.py /src/LS2/database_settings.py
+
+RUN pip install -r /src/requirements.txt
+RUN pip install -r /src/requirements.mssql.txt
+
+# SECRET KEY
+# This MUST be replaced by mounting an actual secret file here
+# LS2 will NOT load until it is replaced
+# Generate a key file with "openssl rand -base64 n -out secret.txt"
+# Note that this CAN be rotated with little (not none) impact to system functionality
+# see https://docs.djangoproject.com/en/2.0/ref/settings/#secret-key for more details
+RUN mkdir /etc/ls2
+RUN touch /etc/ls2/django_secrets.txt
+RUN touch /etc/ls2/django_secret_key.txt
+RUN touch /etc/ls2/db_secret.txt
+RUN touch /etc/ls2/fernet_keys.txt
+
+RUN mkdir /logs
+
+WORKDIR /src
