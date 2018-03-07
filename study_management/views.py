@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.shortcuts import render
-from .models import Researcher, Participant
+from .models import Researcher, Participant, Study
 # from django.contrib.auth.decorators import login_required
 from .decorators import researcher_login_required, researcher_changed_password
 from django.contrib.auth.views import LoginView, PasswordResetView
@@ -66,7 +66,7 @@ def study_detail(request, study_uuid):
         'data_download_default': settings.DATA_DOWNLOAD_DEFAULT,
         'data_export_enabled': settings.DATA_EXPORT_ENABLED,
     }
-    
+
     return render(request, 'study_management/study_detail.html', context)
 
 @researcher_login_required
