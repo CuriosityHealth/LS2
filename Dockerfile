@@ -24,6 +24,7 @@ RUN touch /etc/ls2/django_secrets.txt
 RUN touch /etc/ls2/django_secret_key.txt
 RUN touch /etc/ls2/db_secret.txt
 RUN touch /etc/ls2/fernet_keys.txt
+RUN touch /etc/ls2/settings/databases.json
 
 RUN mkdir /logs
 
