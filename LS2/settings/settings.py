@@ -59,9 +59,7 @@ if DEBUG==False:
         ALLOWED_HOSTS = [LS2_HOST]
         CSRF_TRUSTED_ORIGINS = [LS2_HOST]
     else:
-        raise ImproperlyConfigured(
-            _("No Host Specified. Check the LS2_HOSTNAME environment variable")
-        )
+        raise ImproperlyConfigured("No Host Specified. Check the LS2_HOSTNAME environment variable")
 
 if DEBUG:
 
@@ -286,6 +284,8 @@ LOGGING = {
 }
 
 DATABASES = database_settings.get_databases(os.environ)
+if DATABASES == None:
+    raise ImproperlyConfigured("Databases improperly configured")
 
 
 # easyaudit settings

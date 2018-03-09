@@ -7,7 +7,7 @@ if [ -z "$SECRETS_BUCKET_NAME" ]; then
 fi
 
 # Load the S3 secrets file contents into the environment variables
-eval $(aws s3 cp s3://${SECRETS_BUCKET_NAME}/migration_db_secrets.txt - | sed 's/^/export /')
+export DATABASE_JSON_STRING=$(aws s3 cp s3://${SECRETS_BUCKET_NAME}/migration_databases.json -)
 eval $(aws s3 cp s3://${SECRETS_BUCKET_NAME}/django_secrets.txt - | sed 's/^/export /')
 export DJANGO_SECRET=$(aws s3 cp s3://${SECRETS_BUCKET_NAME}/django_secret_key.txt -)
 export FERNET_KEYS=$(aws s3 cp s3://${SECRETS_BUCKET_NAME}/fernet_keys.txt -)
