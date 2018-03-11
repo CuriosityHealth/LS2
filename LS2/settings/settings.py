@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 from django.core.exceptions import ImproperlyConfigured
 from . import database_settings
+from study_management import database_routers
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -287,6 +288,7 @@ DATABASES = database_settings.get_databases(os.environ)
 if DATABASES == None:
     raise ImproperlyConfigured("Databases improperly configured")
 
+DATABASE_ROUTERS = ['study_management.database_routers.DatapointRouter']
 
 # easyaudit settings
 # NOTE: We patched easy audit a bit due to errors in the request signal
