@@ -69,9 +69,9 @@ admin.site.register(Participant, ParticipantAdmin)
 
 class DatapointAdmin(admin.ModelAdmin):
 
-    list_display = ['uuid', 'study', 'schema_string', 'participant', 'created_date_time']
+    list_display = ['uuid', 'study_uuid', 'schema_string', 'participant_uuid', 'created_date_time']
     date_hierarchy = 'created_date_time'
-    list_filter = ['study', 'participant', 'created_date_time', ]
+    list_filter = ['study_uuid', 'participant_uuid', 'created_date_time', ]
 
     readonly_fields = ['datapoint_prettified', ]
     exclude = ['schema_namespace', 'schema_name', 'schema_version_major',

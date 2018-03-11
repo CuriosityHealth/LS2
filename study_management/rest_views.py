@@ -153,15 +153,16 @@ class DatapointListView(APIView):
             return render(request, '404.html')
 
         ##This ensures that researcher has access to this study
+        ##TODO: Can we take this check out? OR move to permissions check?
         try:
             study = researcher.studies.get(uuid=study_uuid)
         except Study.DoesNotExist:
             return render(request, '404.html')
 
-        datapoints = Datapoint.objects.filter(study=study).order_by('created_date_time')
+        datapoints = Datapoint.objects.filter(study_uuid=study_uuid).order_by('created_date_time')
         if participant_uuid is not None:
-            datapoints = datapoints.filter(participant__uuid=participant_uuid)
-            
+            datapoints = datapoints.filter(participant_uuid=participant_uuid)
+
         try:
             serializer = DatapointSerializer(datapoints, many=True)
             return Response(serializer.data)

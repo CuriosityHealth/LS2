@@ -14,6 +14,7 @@ class Study(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
+    created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
@@ -27,7 +28,7 @@ class Study(models.Model):
 
     def last_datapoint_submission_date(self):
         try:
-            datapoint = self.datapoint_set.all().latest('ap_source_creation_date_time')
+            datapoint = Datapoint.objects.filter(study_uuid=self.uuid).latest('ap_source_creation_date_time')
             return datapoint.ap_source_creation_date_time
         except Datapoint.DoesNotExist:
             return None
@@ -72,7 +73,7 @@ class Participant(models.Model):
 
     def last_datapoint_submission_date(self):
         try:
-            datapoint = self.datapoint_set.all().latest('ap_source_creation_date_time')
+            datapoint = Datapoint.objects.filter(participant_uuid=self.uuid).latest('ap_source_creation_date_time')
             return datapoint.ap_source_creation_date_time
         except Datapoint.DoesNotExist:
             return None
@@ -90,8 +91,8 @@ class Participant(models.Model):
 ## Potentially, we can try to store data in another database, although still postgres
 class Datapoint(models.Model):
     uuid = models.UUIDField(unique=True, editable=False)
-    participant = models.ForeignKey(Participant, on_delete=models.PROTECT)
-    study = models.ForeignKey(Study, on_delete=models.PROTECT)
+    participant_uuid = models.UUIDField(editable=False)
+    study_uuid = models.UUIDField(editable=False)
     created_date_time = models.DateTimeField(auto_now_add=True)
     schema_namespace = models.CharField(max_length=64)
     schema_name = models.CharField(max_length=32)

@@ -18,7 +18,8 @@ class DatapointSerializer(serializers.ModelSerializer):
 
         try:
             participant = request.user.participant
-            study = participant.study
+            participant_uuid = participant.uuid
+            study_uuid = participant.study.uuid
         except Participant.DoesNotExist:
             raise serializers.ValidationError({
                 'participant': 'The request must include a valid participant.'
@@ -115,9 +116,9 @@ class DatapointSerializer(serializers.ModelSerializer):
                 'body': 'This field is required.'
             })
 
-        return {
-            'participant': participant,
-            'study': study,
+        internal_representation = {
+            'participant_uuid': participant_uuid,
+            'study_uuid': study_uuid,
             'uuid': uuid,
             'schema_namespace': schema_namespace,
             'schema_name': schema_name,
@@ -130,6 +131,8 @@ class DatapointSerializer(serializers.ModelSerializer):
             'body': body
         }
 
+        return internal_representation
+
     def to_representation(self, obj):
 
         schema_version = '.'.join([
@@ -139,7 +142,7 @@ class DatapointSerializer(serializers.ModelSerializer):
         ])
 
         header = {
-            'participant_id': obj.participant.uuid,
+            'participant_id': obj.participant_uuid,
             'id': obj.uuid,
             'creation_date_time': obj.created_date_time,
             'schema_id': {
