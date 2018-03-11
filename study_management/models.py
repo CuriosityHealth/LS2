@@ -91,8 +91,8 @@ class Participant(models.Model):
 ## Potentially, we can try to store data in another database, although still postgres
 class Datapoint(models.Model):
     uuid = models.UUIDField(unique=True, editable=False)
-    participant_uuid = models.UUIDField(editable=False)
-    study_uuid = models.UUIDField(editable=False)
+    participant_uuid = models.UUIDField(editable=False, db_index=True)
+    study_uuid = models.UUIDField(editable=False, db_index=True)
     created_date_time = models.DateTimeField(auto_now_add=True)
     schema_namespace = models.CharField(max_length=64)
     schema_name = models.CharField(max_length=32)
