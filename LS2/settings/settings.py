@@ -288,7 +288,7 @@ DATABASES = database_settings.get_databases(os.environ)
 if DATABASES == None:
     raise ImproperlyConfigured("Databases improperly configured")
 
-DATABASE_ROUTERS = ['study_management.database_routers.DatapointRouter']
+DATABASE_ROUTERS = database_settings.get_database_routers(os.environ)
 
 # easyaudit settings
 # NOTE: We patched easy audit a bit due to errors in the request signal

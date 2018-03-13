@@ -10,3 +10,11 @@ def get_databases(environ):
         return databases
     except ValueError:
         return None
+
+def get_database_routers(environ):
+
+    database_routers_string = environ.get('DATABASE_ROUTERS')
+    if database_routers_string == None:
+        return []
+    else:
+        return database_routers_string.split(',')
