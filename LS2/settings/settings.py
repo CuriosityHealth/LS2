@@ -61,6 +61,11 @@ if DEBUG==False:
         CSRF_TRUSTED_ORIGINS = [LS2_HOST]
     else:
         raise ImproperlyConfigured("No Host Specified. Check the LS2_HOSTNAME environment variable")
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+    if os.environ.get('LS2_EXTRA_DEBUG_HOSTS') != None:
+        extra_hosts = os.environ.get('LS2_EXTRA_DEBUG_HOSTS').split(',')
+        ALLOWED_HOSTS = ALLOWED_HOSTS + extra_hosts
 
 if DEBUG:
 

@@ -184,6 +184,7 @@ class DatapointCreateView(APIView):
             content = {}
             return Response(content, status=status.HTTP_401_UNAUTHORIZED)
 
+        logger.debug(f'datapoint is {request.data}')
         serializer = DatapointSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             try:
@@ -193,5 +194,6 @@ class DatapointCreateView(APIView):
                 uuid = serializer.validated_data['uuid']
                 message = f'A datapoint with id {uuid} already exists.'
                 return Response({"message": message}, status=status.HTTP_409_CONFLICT)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            logger.debug(f'datapoint is invalid {serializer.errors}')
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
