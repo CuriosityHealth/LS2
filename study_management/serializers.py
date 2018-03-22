@@ -131,6 +131,10 @@ class DatapointSerializer(serializers.ModelSerializer):
             'body': body
         }
 
+        headerJSON = header.get('metadata')
+        if headerJSON != None:
+            internal_representation['metadata'] = json.dumps(headerJSON)
+
         return internal_representation
 
     def to_representation(self, obj):
@@ -156,6 +160,9 @@ class DatapointSerializer(serializers.ModelSerializer):
                 'source_creation_date_time': obj.ap_source_creation_date_time,
             }
         }
+
+        if obj.metadata != None:
+            header['metadata'] = json.loads(obj.metadata)
 
         return {
             'header': header,
