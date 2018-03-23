@@ -168,3 +168,7 @@ class DatapointSerializer(serializers.ModelSerializer):
             'header': header,
             'body': json.loads(obj.body)
         }
+
+class ParticipantAccountGeneratorAuthenticationSerializer(serializers.Serializer):
+    generator_id = serializers.UUIDField()
+    generator_password = serializers.CharField()

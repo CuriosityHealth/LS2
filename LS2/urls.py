@@ -72,6 +72,11 @@ participant_patterns = [
     path('dsu/dataPoints', rest_views.DatapointCreateView.as_view(), name='dataPoints'),
 ]
 
+# ParticipantAccountGeneratorAuthentication
+participant_account_generation_views = [
+    path('dsu/account/generate', rest_views.ParticipantAccountGeneratorView.as_view(), name='participant_account_generation')
+]
+
 health_check_patterns = [
     # re_path(r'ht/', include('health_check.urls')),
     re_path(r'ht/', study_management_views.HealthCheckCustomView.as_view(), name='health_check_custom'),
@@ -84,4 +89,10 @@ security_patterns = [
 ]
 
 
-urlpatterns = admin_patterns + researcher_account_patterns + researcher_study_patterns + rest_patterns + participant_patterns + health_check_patterns + security_patterns
+urlpatterns = admin_patterns + \
+    researcher_account_patterns + \
+    researcher_study_patterns + \
+    rest_patterns + participant_patterns + \
+    health_check_patterns + \
+    security_patterns + \
+    participant_account_generation_views

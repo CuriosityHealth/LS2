@@ -7,12 +7,20 @@ from rest_framework.views import APIView
 from django.shortcuts import render
 from cryptography.fernet import InvalidToken
 
+from django.contrib.auth import get_user_model
+UserModel = get_user_model()
+
 # from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 from .decorators import researcher_login_required
-from .rest_auth import ResearcherSessionAuthentication, ParticipantTokenAuthentication
-from .models import Datapoint, Participant, Researcher, Study
+from .rest_auth import (
+    ResearcherSessionAuthentication,
+    ParticipantTokenAuthentication,
+    ParticipantAccountGeneratorAuthentication
+)
+from .rest_permissions import ParticipantAccountGeneratorPermission
+from .models import Datapoint, Participant, Researcher, Study, ParticipantAccountGenerator
 from .serializers import DatapointSerializer
 
 from easyaudit.settings import REMOTE_ADDR_HEADER
@@ -197,3 +205,37 @@ class DatapointCreateView(APIView):
         else:
             logger.debug(f'datapoint is invalid {serializer.errors}')
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+##This authenticates users as AnonymousUser, but puts the generator in the auth field
+class ParticipantAccountGeneratorView(APIView):
+
+    authentication_classes = (ParticipantAccountGeneratorAuthentication,)
+    parser_classes = (parsers.JSONParser,)
+    renderer_classes = (renderers.JSONRenderer,)
+    permission_classes = (ParticipantAccountGeneratorPermission,)
+
+    def post(self, request, format=None):
+
+        participant_account_generator = request.auth
+        username_password = participant_account_generator.generate_participant()
+        if username_password == None:
+            return Response({"error": "An error occurred. Please try again."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        content = {'username': username_password[0], 'password': username_password[1]}
+        return Response(content, status=status.HTTP_201_CREATED)
+
+
+        # logger.debug(f'datapoint is {request.data}')
+        # serializer = DatapointSerializer(data=request.data, context={'request': request})
+        # if serializer.is_valid():
+        #     try:
+        #         serializer.save()
+        #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+        #     except IntegrityError as e:
+        #         uuid = serializer.validated_data['uuid']
+        #         message = f'A datapoint with id {uuid} already exists.'
+        #         return Response({"message": message}, status=status.HTTP_409_CONFLICT)
+        # else:
+        #     logger.debug(f'datapoint is invalid {serializer.errors}')
+        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

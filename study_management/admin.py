@@ -4,11 +4,17 @@ from django.conf import settings
 from easyaudit.admin import CRUDEventAdmin, LoginEventAdmin, RequestEventAdmin
 from easyaudit.models import CRUDEvent, LoginEvent, RequestEvent
 
-from .models import Study, Researcher, Participant, Datapoint, PasswordChangeEvent, LoginTimeout
+from .models import (
+    Study, Researcher, Participant,
+    Datapoint, PasswordChangeEvent, LoginTimeout,
+    ParticipantAccountGenerator
+)
 # Register your models here.
 from django.utils.safestring import mark_safe
 from .serializers import DatapointSerializer
 from rest_framework.renderers import JSONRenderer
+
+from .forms import ParticipantAccountGeneratorCreationForm, ParticipantAccountGeneratorChangeForm
 
 admin.site.register(Study)
 admin.site.register(Researcher)
@@ -147,3 +153,40 @@ class LS2RequestEventAdmin(RequestEventAdmin):
         return True
 
 admin.site.register(RequestEvent, LS2RequestEventAdmin)
+
+@admin.register(ParticipantAccountGenerator)
+class ParticipantAccountGeneratorAdmin(admin.ModelAdmin):
+
+    # fieldsets = (
+    #     (None, {'fields': ('study', 'password')}),
+    #     (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
+    #     (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
+    #                                    'groups', 'user_permissions')}),
+    #     (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+    # )
+    # add_fieldsets = (
+    #     (None, {
+    #         'classes': ('wide',),
+    #         'fields': ('username', 'password1', 'password2'),
+    #     }),
+    # )
+
+    # def get_fieldsets(self, request, obj=None):
+    #     if not obj:
+    #         return self.add_fieldsets
+    #     return super().get_fieldsets(request, obj)
+
+    readonly_fields = ('uuid', 'number_of_participants_created', 'study', )
+
+    form = ParticipantAccountGeneratorChangeForm
+    add_form = ParticipantAccountGeneratorCreationForm
+
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        Use special form during user creation
+        """
+        defaults = {}
+        if obj is None:
+            defaults['form'] = self.add_form
+        defaults.update(kwargs)
+        return super().get_form(request, obj, **defaults)
