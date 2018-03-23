@@ -135,7 +135,8 @@ class Datapoint(models.Model):
 
 class PasswordChangeEvent(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    username = models.CharField(max_length=255)
     encoded_password = models.CharField(max_length=100)
 
 class LoginTimeout(models.Model):

@@ -43,4 +43,4 @@ high. It must be less than or equal to {self.max_generations_to_save}')
 
     def password_changed(self, password, user=None):
         encoded_password = make_password(password)
-        password_change_event = PasswordChangeEvent.objects.create(encoded_password=encoded_password, user=user)
+        password_change_event = PasswordChangeEvent.objects.create(encoded_password=encoded_password, user=user, username=user.username)

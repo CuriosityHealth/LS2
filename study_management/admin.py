@@ -20,9 +20,9 @@ admin.site.register(Study)
 admin.site.register(Researcher)
 
 class PasswordChangeEventAdmin(admin.ModelAdmin):
-    list_display = ('user', 'created_date')
-    readonly_fields = ('user', 'created_date')
-    fields = ('user', 'created_date')
+    list_display = ('user', 'username', 'created_date')
+    readonly_fields = ('user', 'username', 'created_date')
+    fields = ('user', 'username', 'created_date')
 
     def has_add_permission(self, request):
         return False
