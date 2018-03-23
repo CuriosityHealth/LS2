@@ -181,6 +181,7 @@ class ParticipantAccountGenerator(models.Model):
 
         try:
             user = User(username=username)
+            password_validation.validate_password(password, user=user)
             user.set_password(password)
             user.full_clean()
             user.save()
