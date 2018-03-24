@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.conf import settings
+from . import settings as app_settings
 
 from easyaudit.admin import CRUDEventAdmin, LoginEventAdmin, RequestEventAdmin
 from easyaudit.models import CRUDEvent, LoginEvent, RequestEvent
@@ -7,7 +8,9 @@ from easyaudit.models import CRUDEvent, LoginEvent, RequestEvent
 from .models import (
     Study, Researcher, Participant,
     Datapoint, PasswordChangeEvent, LoginTimeout,
-    ParticipantAccountGenerator
+    ParticipantAccountGenerator,
+    ParticipantAccountGenerationRequestEvent,
+    ParticipantAccountGenerationTimeout,
 )
 # Register your models here.
 from django.utils.safestring import mark_safe
@@ -154,7 +157,6 @@ class LS2RequestEventAdmin(RequestEventAdmin):
 
 admin.site.register(RequestEvent, LS2RequestEventAdmin)
 
-@admin.register(ParticipantAccountGenerator)
 class ParticipantAccountGeneratorAdmin(admin.ModelAdmin):
 
     # fieldsets = (
@@ -190,3 +192,29 @@ class ParticipantAccountGeneratorAdmin(admin.ModelAdmin):
             defaults['form'] = self.add_form
         defaults.update(kwargs)
         return super().get_form(request, obj, **defaults)
+if app_settings.PARTICIPANT_ACCOUNT_GENERATION_ENABLED:
+    admin.site.register(ParticipantAccountGenerator, ParticipantAccountGeneratorAdmin)
+
+class ParticipantAccountGenerationTimeoutAdmin(admin.ModelAdmin):
+    readonly_fields = ('remote_ip', 'generator_id', 'created_date', 'disable_until')
+
+
+if app_settings.PARTICIPANT_ACCOUNT_GENERATION_ENABLED:
+    admin.site.register(ParticipantAccountGenerationTimeout, ParticipantAccountGenerationTimeoutAdmin)
+
+class ParticipantAccountGenerationRequestEventAdmin(admin.ModelAdmin):
+    readonly_fields = ('remote_ip', 'generator_id', 'created_date', )
+    # def has_add_permission(self, request):
+    #     return False
+    #
+    # def has_change_permission(self, request, obj=None):
+    #     return True
+    #
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
+    #
+    # def has_module_permission(self, request):
+    #     return True
+
+if app_settings.PARTICIPANT_ACCOUNT_GENERATION_ENABLED:
+    admin.site.register(ParticipantAccountGenerationRequestEvent, ParticipantAccountGenerationRequestEventAdmin)

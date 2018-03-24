@@ -23,8 +23,6 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from study_management import views as study_management_views
 from study_management import rest_views
 
-
-
 from . import settings
 
 # check to see if we should enable the admin portal
@@ -73,9 +71,12 @@ participant_patterns = [
 ]
 
 # ParticipantAccountGeneratorAuthentication
-participant_account_generation_views = [
-    path('dsu/account/generate', rest_views.ParticipantAccountGeneratorView.as_view(), name='participant_account_generation')
-]
+if getattr(settings, 'PARTICIPANT_ACCOUNT_GENERATION_ENABLED', False):
+    participant_account_generation_views = [
+        path('dsu/account/generate', rest_views.ParticipantAccountGeneratorView.as_view(), name='participant_account_generation')
+    ]
+else:
+    participant_account_generation_views = []
 
 health_check_patterns = [
     # re_path(r'ht/', include('health_check.urls')),

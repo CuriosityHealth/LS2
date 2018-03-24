@@ -169,6 +169,12 @@ class ParticipantAccountGenerator(models.Model):
     number_of_participants_created = models.PositiveSmallIntegerField(default=0)
     max_participants_to_create = models.PositiveSmallIntegerField(default=0)
 
+    ## Throttling
+    ## note there is both system wide throttling as well as
+    ## generator specific throttling
+    ## for system-wide, we would like to prevent a user from brute forcing
+    ## uuid or password
+
     def can_generate_participant_account(self):
         return self.is_active and self.number_of_participants_created < self.max_participants_to_create
 
@@ -243,3 +249,19 @@ class ParticipantAccountGenerator(models.Model):
             self._generator_password = None
             self.save(update_fields=["generator_password"])
         return check_password(raw_password, self.generator_password, setter)
+
+class ParticipantAccountGenerationRequestEvent(models.Model):
+    created_date = models.DateTimeField(auto_now_add=True)
+    generator_id = models.UUIDField(blank=True)
+    remote_ip = models.CharField(max_length=50, null=True, db_index=True)
+
+class ParticipantAccountGenerationTimeout(models.Model):
+    created_date = models.DateTimeField(auto_now_add=True)
+    ## if generator_id is blank, this denotes a global timeout
+    generator_id = models.UUIDField(blank=True)
+    disable_until = models.DateTimeField()
+    remote_ip = models.CharField(max_length=50, null=True, db_index=True)
+
+    def disabled(self):
+        now = timezone.now()
+        return now <= self.disable_until
