@@ -178,7 +178,14 @@ class ParticipantAccountGeneratorAdmin(admin.ModelAdmin):
     #         return self.add_fieldsets
     #     return super().get_fieldsets(request, obj)
 
-    readonly_fields = ('uuid', 'number_of_participants_created', 'study', )
+    list_display = ('__str__', 'study', 'number_of_participants_created', 'max_participants_to_create')
+
+    def get_readonly_fields(self, request, obj=None):
+        if not obj:
+            return ('uuid', 'number_of_participants_created')
+        else:
+            return ('uuid', 'number_of_participants_created', 'study')
+
 
     form = ParticipantAccountGeneratorChangeForm
     add_form = ParticipantAccountGeneratorCreationForm

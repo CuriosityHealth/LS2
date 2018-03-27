@@ -154,7 +154,7 @@ class ParticipantAccountGenerator(models.Model):
     is_active = models.BooleanField(default=True)
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
-    study = models.OneToOneField(Study, on_delete=models.PROTECT)
+    study = models.ForeignKey(Study, on_delete=models.PROTECT)
     generator_password = models.CharField(max_length=128)
     _generator_password = None
 
@@ -168,6 +168,9 @@ class ParticipantAccountGenerator(models.Model):
 
     number_of_participants_created = models.PositiveSmallIntegerField(default=0)
     max_participants_to_create = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return str(self.uuid)
 
     ## Throttling
     ## note there is both system wide throttling as well as
@@ -183,8 +186,8 @@ class ParticipantAccountGenerator(models.Model):
         username = self.generate_username()
         password = self.generate_password()
 
-        logger.debug(username)
-        logger.debug(password)
+        # logger.debug(username)
+        # logger.debug(password)
 
         try:
             user = User(username=username)
@@ -196,24 +199,27 @@ class ParticipantAccountGenerator(models.Model):
             logger.error(e)
             return None
 
-        logger.debug(user)
+        # logger.debug(user)
 
         try:
             participant = Participant(label=username, user=user, study=self.study)
         except Study.DoesNotExist:
+            logger.error(e)
+            user.delete()
             return None
 
         try:
             participant.full_clean()
             participant.save()
         except ValidationError as e:
+            logger.error(e)
             user.delete()
             return None
 
         self.number_of_participants_created = F('number_of_participants_created') + 1
         self.save()
 
-        logger.debug(participant)
+        # logger.debug(participant)
         return (username, password)
 
     def generate_username(self):

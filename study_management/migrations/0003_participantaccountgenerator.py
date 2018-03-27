@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('password_max_length', models.PositiveSmallIntegerField(default=16)),
                 ('number_of_participants_created', models.PositiveSmallIntegerField(default=0)),
                 ('max_participants_to_create', models.PositiveSmallIntegerField(default=0)),
-                ('study', models.OneToOneField(on_delete=django.db.models.deletion.PROTECT, to='study_management.Study')),
+                ('study', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='study_management.Study')),
             ],
         ),
     ]
