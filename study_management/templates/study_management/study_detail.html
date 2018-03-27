@@ -44,4 +44,8 @@
 
   {% include "study_management/participant_table.html" with study=study data_export_enabled=data_export_enabled data_download_default=data_download_default only %}
 
+  {% if study.participantaccountgenerator_set.count > 0 %}
+  {% include "study_management/participant_account_generators_table.html" with study=study only %}
+  {% endif %}
+
 {% endblock %}

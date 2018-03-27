@@ -1,0 +1,20 @@
+
+<div class="row ls2-subcontainer">
+  <div class="col-md-8 center-block">
+    <table class="table table-borderd ls2-table" style="width:100%">
+      <tr>
+        <th>Generator ID</th>
+        <th>Participants Created</th>
+        <th>Max Participants To Create</th>
+      </tr>
+
+      {% for generator in study.participantaccountgenerator_set.all %}
+        <tr class="ls2-cell">
+          <td>{{ generator.uuid }}</td>
+          <td>{{ generator.number_of_participants_created }}</td>
+          <td>{{ generator.max_participants_to_create }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
