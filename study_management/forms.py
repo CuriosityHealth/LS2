@@ -82,24 +82,6 @@ class ParticipantAccountGeneratorCreationForm(forms.ModelForm):
         help_text=_("Enter the same password as before, for verification."),
     )
 
-    # created_date = models.DateTimeField(auto_now_add=True)
-    # is_active = models.BooleanField(default=True)
-    # uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
-    #
-    # study = models.OneToOneField(Study, on_delete=models.PROTECT)
-    # generator_password = models.CharField(max_length=128)
-    #
-    # username_prefix = models.CharField(default='', max_length=16)
-    # username_suffix = models.CharField(default='', max_length=16)
-    # username_random_character_length = models.PositiveSmallIntegerField(default=16)
-    # ## random character alphabet is hex
-    #
-    # password_min_length = models.PositiveSmallIntegerField(default=16)
-    # password_max_length = models.PositiveSmallIntegerField(default=16)
-    #
-    # number_of_participants_created = models.PositiveSmallIntegerField(default=0)
-    # max_participants_to_create = models.PositiveSmallIntegerField(default=0)
-
     class Meta:
         model = ParticipantAccountGenerator
         fields = ('study',
