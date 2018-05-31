@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 from django.core.exceptions import ImproperlyConfigured
 from . import database_settings
+from . import authentication_settings
 from study_management import database_routers
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -25,8 +26,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # LS2_DEBUG env variable is a string,
 # ignore case, check that it matches true for debug
 DEBUG = os.environ.get('LS2_DEBUG', 'false').lower() == 'true'
-
-# print(f'DEBUG={DEBUG}')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 LS2_HOST = os.environ.get('LS2_HOSTNAME')
@@ -134,9 +133,13 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
 ]
 
-AUTHENTICATION_BACKENDS = [
-    'study_management.auth_backends.RateLimitedAuthenticationBackend',
-]
+AUTHENTICATION_BACKENDS = authentication_settings.get_authentication_backends(os.environ)
+if AUTHENTICATION_BACKENDS == None:
+    raise ImproperlyConfigured("Authentication backends improperly configured")
+
+additional_settings = authentication_settings.get_additional_settings(os.environ)
+for (key, value) in additional_settings.items():
+    globals()[key] = value
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

@@ -5,7 +5,6 @@ from .models import Researcher, Participant, Study
 from .decorators import researcher_login_required, researcher_changed_password
 from django.contrib.auth.views import LoginView, PasswordResetView
 from .forms import ResearcherAuthenticationForm, ParticipantCreationForm
-from .utils import should_warn_about_password_age
 from django.urls import reverse
 from django.contrib import messages
 from django.http import HttpResponse
@@ -45,7 +44,7 @@ def home(request):
     researcher = request.user.researcher
     context = {'researcher': researcher}
 
-    if should_warn_about_password_age(request.user):
+    if researcher.should_warn_about_password_age():
         messages.warning(request, 'Your password will expire soon.')
 
     return render(request, 'study_management/researcher_home.html', context)

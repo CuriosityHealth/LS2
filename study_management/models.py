@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import password_validation
-from .settings import PARTICIPANT_ACCOUNT_GENERATOR_PASSWORD_VALIDATORS
+from .settings import PARTICIPANT_ACCOUNT_GENERATOR_PASSWORD_VALIDATORS, PASSWORD_AGE_LIMIT_MINUTES, PASSWORD_AGE_WARN_MINUTES
 from django.contrib.auth.hashers import (
     check_password, is_password_usable, make_password,
 )
@@ -21,6 +21,8 @@ from fernet_fields import EncryptedTextField
 from cryptography.fernet import InvalidToken
 import uuid
 import arrow
+
+from datetime import timedelta
 
 import logging
 
@@ -71,11 +73,58 @@ class Researcher(models.Model):
         return self.user.username
 
     def must_change_password(self):
+
+        if self.is_ldap_user():
+            return False
+
         try:
             count = self.user.passwordchangeevent_set.count()
             return count <= 1
         except Datapoint.DoesNotExist:
             return None
+
+    def is_ldap_user(self):
+
+        # logger.info(f'ldap username is {self.user.ldap_username}')
+        logger.info(f'check for ldap username for user {self.user}')
+        logger.info(f'{getattr(self.user, "ldap_username", None)}')
+        return getattr(self.user, "ldap_username", None) != None
+
+    def password_age_is_valid(self):
+
+        #make sure time since latest password change event is less than PASSWORD_AGE_LIMIT_MINUTES
+        logger.info(f'checking password age')
+        try:
+            password_change_event = PasswordChangeEvent.objects.filter(
+                user=self.user,
+            ).latest('created_date')
+
+            age_limit = timedelta(minutes=PASSWORD_AGE_LIMIT_MINUTES)
+            age = timezone.now() - password_change_event.created_date
+            logger.info(f'password age limit is {age_limit}')
+            logger.info(f'password age is {age}')
+            return age < age_limit
+
+        except PasswordChangeEvent.DoesNotExist:
+            logger.info(f'Password change event does not exist')
+            return False
+
+    def should_warn_about_password_age(self):
+
+        # warn if time since latest password change event is more than PASSWORD_AGE_WARN_MINUTES
+        try:
+            password_change_event = PasswordChangeEvent.objects.filter(
+                user=self.user,
+            ).latest('created_date')
+
+            age_warn = timedelta(minutes=PASSWORD_AGE_WARN_MINUTES)
+            age = timezone.now() - password_change_event.created_date
+            logger.info(f'password age warn is {age_warn}')
+            logger.info(f'password age is {age}')
+            return age > age_warn
+
+        except PasswordChangeEvent.DoesNotExist:
+            return False
 
 
 class Participant(models.Model):

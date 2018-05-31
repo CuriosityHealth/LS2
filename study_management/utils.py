@@ -38,41 +38,6 @@ def should_disable_login(username, remote_ip):
     except LoginTimeout.DoesNotExist:
         return False
 
-def password_age_is_valid(user):
-
-    #make sure time since latest password change event is less than PASSWORD_AGE_LIMIT_MINUTES
-
-    try:
-        password_change_event = PasswordChangeEvent.objects.filter(
-            user=user,
-        ).latest('created_date')
-
-        age_limit = timedelta(minutes=settings.PASSWORD_AGE_LIMIT_MINUTES)
-        age = timezone.now() - password_change_event.created_date
-        logger.info(f'password age limit is {age_limit}')
-        logger.info(f'password age is {age}')
-        return age < age_limit
-
-    except PasswordChangeEvent.DoesNotExist:
-        return False
-
-def should_warn_about_password_age(user):
-
-    # warn if time since latest password change event is more than PASSWORD_AGE_WARN_MINUTES
-    try:
-        password_change_event = PasswordChangeEvent.objects.filter(
-            user=user,
-        ).latest('created_date')
-
-        age_warn = timedelta(minutes=settings.PASSWORD_AGE_WARN_MINUTES)
-        age = timezone.now() - password_change_event.created_date
-        logger.info(f'password age warn is {age_warn}')
-        logger.info(f'password age is {age}')
-        return age > age_warn
-
-    except PasswordChangeEvent.DoesNotExist:
-        return False
-
 def is_researcher(user):
     try:
         researcher = user.researcher

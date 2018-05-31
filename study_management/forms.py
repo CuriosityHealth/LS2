@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, get_user_model
 from django import forms
-from .utils import should_disable_login, get_client_ip, password_age_is_valid, is_researcher
+from .utils import should_disable_login, get_client_ip, is_researcher
 from easyaudit.models import LoginEvent
 from . import settings
 from .models import ParticipantAccountGenerator
@@ -26,14 +26,8 @@ class ParticipantCreationForm(UserCreationForm):
 class ResearcherAuthenticationForm(AuthenticationForm):
 
     def confirm_login_allowed(self, user):
-        logger.info(f'Confirming that {user} is allowed to log in')
-        if not password_age_is_valid(user):
-            raise forms.ValidationError(
-                f'PermissionDenied: Password too old!!',
-                code='password_age'
-            )
 
-
+        logger.debug(f'Confirming that {user} is allowed to log in')
         if not is_researcher(user):
             raise forms.ValidationError(
                 self.error_messages['invalid_login'],
@@ -41,10 +35,27 @@ class ResearcherAuthenticationForm(AuthenticationForm):
                 params={'username': self.username_field.verbose_name},
             )
 
+        logger.debug(f'{user} is a researcher')
+        researcher = user.researcher
+        if researcher.is_ldap_user():
+            logger.info(f'{user} is a researcher')
+            return
+
+        else:
+            logger.info(f'Confirming that {user} is allowed to log in')
+            if not researcher.password_age_is_valid():
+                raise forms.ValidationError(
+                    f'PermissionDenied: Password too old!!',
+                    code='password_age'
+                )
+
     def clean(self):
 
         ## check for timeout
         username = self.cleaned_data.get('username')
+
+        ##TODO: potentially check that username matches format
+        ##This could help prevent someone from trying funny business with usernames
 
         if username is not None and should_disable_login(username, get_client_ip(self.request)):
 
