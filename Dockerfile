@@ -1,4 +1,5 @@
 FROM python:3.6
+MAINTAINER James Kizer <james@curiosityhealth.com>
 
 ENV PYTHONUNBUFFERED 1
 
