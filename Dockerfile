@@ -10,6 +10,7 @@ RUN apt-get update && \
     ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
     rm awscli-bundle.zip && rm -rf awscli-bundle
 
+#Add LDAP Support
 RUN apt-get -y install build-essential python3-dev \
   libldap2-dev libsasl2-dev ldap-utils
 
