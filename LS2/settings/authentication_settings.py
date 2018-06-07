@@ -8,14 +8,14 @@ def get_authentication_backends(environ):
     ldap_enabled = environ.get('LS2_LDAP_ENABLED', 'false').lower() == 'true'
     if ldap_enabled:
         return [
-            'django_auth_ldap.backend.LDAPBackend',
+            'study_management.auth_backends.ProtectedLDAPAuthenticationBackend',
             'study_management.auth_backends.RateLimitedAuthenticationBackend',
         ]
     else:
         return [
             'study_management.auth_backends.RateLimitedAuthenticationBackend',
         ]
-        
+
 def get_additional_settings(environ):
 
     additional_settings = {}
@@ -31,5 +31,9 @@ def get_additional_settings(environ):
         ldap_search_filter = environ.get('LS2_LDAP_SEARCH_FILTER')
         additional_settings["AUTH_LDAP_USER_SEARCH"] = LDAPSearch(ldap_search_base_dn, ldap_search_scope, ldap_search_filter)
         additional_settings["AUTH_LDAP_ALWAYS_UPDATE_USER"] = True
+
+        ##blacklist the Participant API auth route
+        ##This prevents participant auth from hitting LDAP server
+        additional_settings["LS2_LDAP_AUTH_PATH_BLACKLIST"] = ['/dsu/auth/token']
 
     return additional_settings

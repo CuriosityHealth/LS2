@@ -5,7 +5,10 @@ from django.core.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 from .models import LoginTimeout
 from django.utils import timezone
+from django_auth_ldap.backend import LDAPBackend
+import logging
 
+logger = logging.getLogger(__name__)
 
 class RateLimitedAuthenticationBackend(ModelBackend):
 
@@ -20,5 +23,15 @@ class RateLimitedAuthenticationBackend(ModelBackend):
             raise PermissionDenied(
                 _(f'Too many failed log in attempts.')
             )
+
+        return super().authenticate(request=request, username=username, password=password)
+
+class ProtectedLDAPAuthenticationBackend(LDAPBackend):
+
+    def authenticate(self, request, username=None, password=None):
+
+        if settings.LS2_LDAP_AUTH_PATH_BLACKLIST != None and request.path in settings.LS2_LDAP_AUTH_PATH_BLACKLIST:
+            logger.debug(f'ProtectedLDAPAuthenticationBackend: {request.path} has been blacklisted for LDAP authentication.')
+            return None
 
         return super().authenticate(request=request, username=username, password=password)
