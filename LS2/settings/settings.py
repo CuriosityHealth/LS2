@@ -65,6 +65,7 @@ else:
     if os.environ.get('LS2_EXTRA_DEBUG_HOSTS') != None:
         extra_hosts = os.environ.get('LS2_EXTRA_DEBUG_HOSTS').split(',')
         ALLOWED_HOSTS = ALLOWED_HOSTS + extra_hosts
+        CSRF_TRUSTED_ORIGINS = extra_hosts
 
 if DEBUG:
 
