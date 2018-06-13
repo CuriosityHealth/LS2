@@ -1,5 +1,7 @@
 # LS2
 
+[![Known Vulnerabilities](https://snyk.io/test/github/CuriosityHealth/LS2/badge.svg?targetFile=requirements.txt)](https://snyk.io/test/github/CuriosityHealth/LS2?targetFile=requirements.txt)
+
 ![LS2 One Slider](LS2OneSlider.png)
 
 For more information, see this [overview](https://docs.google.com/presentation/d/1UqnOsVaKgp0ok6S6UTEVnWIg81YDo3lim7F8XO7yR40).
