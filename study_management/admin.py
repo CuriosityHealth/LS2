@@ -6,7 +6,7 @@ from easyaudit.admin import CRUDEventAdmin, LoginEventAdmin, RequestEventAdmin
 from easyaudit.models import CRUDEvent, LoginEvent, RequestEvent
 
 from .models import (
-    Study, Researcher, Participant,
+    Study, Researcher, Participant, LDAPUserToResearcherConverter,
     Datapoint, PasswordChangeEvent, LoginTimeout,
     ParticipantAccountGenerator,
     ParticipantAccountGenerationRequestEvent,
@@ -21,6 +21,7 @@ from .forms import ParticipantAccountGeneratorCreationForm, ParticipantAccountGe
 
 admin.site.register(Study)
 admin.site.register(Researcher)
+admin.site.register(LDAPUserToResearcherConverter)
 
 class PasswordChangeEventAdmin(admin.ModelAdmin):
     list_display = ('user', 'username', 'created_date')

@@ -62,6 +62,39 @@ class Study(models.Model):
         else:
             return None
 
+class LDAPUserToResearcherConverter(models.Model):
+    ldap_username = models.CharField(max_length=50)
+    studies = models.ManyToManyField(Study, blank=True)
+    converted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.ldap_username
+
+    def convert_to_researcher(self, user):
+
+        logger.debug(self)
+        studies = self.studies.all()
+        logger.debug(studies)
+        if self.converted:
+            logger.error("Already converted")
+            return None
+
+        researcher = Researcher(user=user)
+
+        try:
+            researcher.full_clean()
+            researcher.save()
+            researcher.studies.set(self.studies.all())
+            researcher.save()
+        except ValidationError as e:
+            logger.error(e)
+            researcher.delete()
+            user.delete()
+            return None
+
+        self.converted = True
+        self.save()
+        return researcher
 
 class Researcher(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)

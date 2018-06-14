@@ -4,7 +4,7 @@ from django import forms
 from .utils import should_disable_login, get_client_ip, is_researcher
 from easyaudit.models import LoginEvent
 from . import settings
-from .models import ParticipantAccountGenerator
+from .models import ParticipantAccountGenerator, LDAPUserToResearcherConverter
 from .settings import PARTICIPANT_ACCOUNT_GENERATOR_PASSWORD_VALIDATORS
 from django.utils.translation import gettext, gettext_lazy as _
 
@@ -29,11 +29,39 @@ class ResearcherAuthenticationForm(AuthenticationForm):
 
         logger.debug(f'Confirming that {user} is allowed to log in')
         if not is_researcher(user):
-            raise forms.ValidationError(
-                self.error_messages['invalid_login'],
-                code='invalid_login',
-                params={'username': self.username_field.verbose_name},
-            )
+
+            ## check to see if an LDAP user
+            if getattr(user, "ldap_username", None) != None:
+                logger.debug(f'Confirming that {user} is an LDAP user but not yet a researcher')
+                logger.debug(f'{user.ldap_username}')
+                ##check to
+                try:
+                    converter = LDAPUserToResearcherConverter.objects.filter(ldap_username=user.ldap_username).get()
+                    researcher = converter.convert_to_researcher(user)
+                    if researcher != None:
+                        logger.info(f'researcher created')
+                        return
+                    else:
+                        logger.debug(f'failed to create researcher for {user.ldap_username}')
+                        raise forms.ValidationError(
+                            self.error_messages['invalid_login'],
+                            code='invalid_login',
+                            params={'username': self.username_field.verbose_name},
+                        )
+
+                except LDAPUserToResearcherConverter.DoesNotExist:
+                    logger.info(f'LDAP User to Researcher converter does not exist')
+                    raise forms.ValidationError(
+                        self.error_messages['invalid_login'],
+                        code='invalid_login',
+                        params={'username': self.username_field.verbose_name},
+                    )
+                except LDAPUserToResearcherConverter.MultipleObjectsReturned:
+                    raise forms.ValidationError(
+                        self.error_messages['invalid_login'],
+                        code='invalid_login',
+                        params={'username': self.username_field.verbose_name},
+                    )
 
         logger.debug(f'{user} is a researcher')
         researcher = user.researcher
