@@ -2,6 +2,7 @@ import os
 import sys
 import ldap
 import getpass
+from django_auth_ldap.config import LDAPSearch
 
 def main():
 
@@ -38,14 +39,29 @@ def main():
 
     print(f'Attempting to search for {user} in \"{ldap_search_base_dn}\"')
 
-    filter = ldap_search_filter_template % {'user': user}
+    # filter = ldap_search_filter_template % {'user': user}
     print(f'Filter {filter}')
-    result = l.search_s(ldap_search_base_dn,ldap_search_scope,filter)[0]
+    # result = l.search_s(ldap_search_base_dn,ldap_search_scope,filter)[0]
     # print(result[0])
-    user_dn = result[0]
+    # user_dn = result[0]
 
-    r = l.simple_bind_s(user_dn, password)
+    # r = l.simple_bind_s(user_dn, password)
+    # print('Test Successful')
+
+    ldap_search = LDAPSearch(ldap_search_base_dn, ldap.SCOPE_SUBTREE, ldap_search_filter_template)
+
+    print(ldap_search)
+    results = ldap_search.execute(l, {'user': user})
+    if results is not None and len(results) == 1:
+        # print(results[0])
+        pass
+    else:
+        print("NOT FOUND")
+
+    user_dn = results[0][0]
+    l.simple_bind_s(user_dn, password)
     print('Test Successful')
+
 
 if __name__ == "__main__":
     main()
