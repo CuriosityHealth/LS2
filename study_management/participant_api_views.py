@@ -7,20 +7,14 @@ from rest_framework.views import APIView
 from django.shortcuts import render
 from cryptography.fernet import InvalidToken
 
-from django.contrib.auth import get_user_model
-UserModel = get_user_model()
-
-# from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from .decorators import researcher_login_required
 from .rest_auth import (
-    ResearcherSessionAuthentication,
     ParticipantTokenAuthentication,
     ParticipantAccountGeneratorAuthentication
 )
 from .rest_permissions import ParticipantAccountGeneratorPermission
-from .models import Datapoint, Participant, Researcher, Study, ParticipantAccountGenerator
+from .models import Datapoint, Participant, ParticipantAccountGenerator
 from .serializers import DatapointSerializer
 
 from easyaudit.settings import REMOTE_ADDR_HEADER
@@ -46,10 +40,8 @@ class ObtainAuthToken(APIView):
         serializer.is_valid(raise_exception=False)
         if 'user' in serializer.validated_data:
             user = serializer.validated_data['user']
-            # print(user)
             if user is not None:
                 try:
-                    # print(user.participant)
                     participant = user.participant
                     Token.objects.filter(user=user).delete()
                     token = Token.objects.create(user=user)
@@ -94,11 +86,8 @@ class ObtainAuthToken(APIView):
                 content = {}
                 return Response(content, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            # print('user is not in serializer.validated_data')
-            # print("user is nil")
             # Only need to do below in the case that username is not specified in serializer
             # Otherwise, this will have been handled by the default login failed signal
-            # print(serializer.data)
             if not serializer.data.get('username'):
                 try:
                     with transaction.atomic():
@@ -144,38 +133,6 @@ class ParticipantTokenCheck(APIView):
 
     def get(self, request, format=None):
         return Response({"message":"success"}, status.HTTP_200_OK)
-
-class DatapointListView(APIView):
-    authentication_classes = (ResearcherSessionAuthentication,)
-    parser_classes = (parsers.JSONParser,)
-    renderer_classes = (renderers.JSONRenderer,)
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request, study_uuid, participant_uuid=None, format=None):
-
-        ##This ensures that the user is a researcher
-        ## This should not happen, but let's leave here for safety
-        try:
-            researcher = request.user.researcher
-        except Researcher.DoesNotExist:
-            return render(request, '404.html')
-
-        ##This ensures that researcher has access to this study
-        ##TODO: Can we take this check out? OR move to permissions check?
-        try:
-            study = researcher.studies.get(uuid=study_uuid)
-        except Study.DoesNotExist:
-            return render(request, '404.html')
-
-        datapoints = Datapoint.objects.filter(study_uuid=study_uuid).order_by('created_date_time')
-        if participant_uuid is not None:
-            datapoints = datapoints.filter(participant_uuid=participant_uuid)
-
-        try:
-            serializer = DatapointSerializer(datapoints, many=True)
-            return Response(serializer.data)
-        except InvalidToken:
-            return render(request, '500.html')
 
 class DatapointCreateView(APIView):
 
@@ -224,18 +181,3 @@ class ParticipantAccountGeneratorView(APIView):
 
         content = {'username': username_password[0], 'password': username_password[1]}
         return Response(content, status=status.HTTP_201_CREATED)
-
-
-        # logger.debug(f'datapoint is {request.data}')
-        # serializer = DatapointSerializer(data=request.data, context={'request': request})
-        # if serializer.is_valid():
-        #     try:
-        #         serializer.save()
-        #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-        #     except IntegrityError as e:
-        #         uuid = serializer.validated_data['uuid']
-        #         message = f'A datapoint with id {uuid} already exists.'
-        #         return Response({"message": message}, status=status.HTTP_409_CONFLICT)
-        # else:
-        #     logger.debug(f'datapoint is invalid {serializer.errors}')
-        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

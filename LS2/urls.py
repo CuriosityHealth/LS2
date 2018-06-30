@@ -21,7 +21,8 @@ from django.contrib.auth import views as auth_views
 from rest_framework.urlpatterns import format_suffix_patterns
 
 from study_management import views as study_management_views
-from study_management import rest_views
+from study_management import researcher_rest_views
+from study_management import participant_api_views
 
 from . import settings
 
@@ -58,8 +59,8 @@ if settings.STUDY_MANAGEMENT_PORTAL_ENABLE:
     ]
 
     researcher_rest_patters = [
-        path('management/studies/<uuid:study_uuid>/study_data', rest_views.DatapointListView.as_view(), name='all_study_data'),
-        path('management/studies/<uuid:study_uuid>/study_data/<uuid:participant_uuid>', rest_views.DatapointListView.as_view(), name='study_data_for_participant'),
+        path('management/studies/<uuid:study_uuid>/study_data', researcher_rest_views.DatapointListView.as_view(), name='all_study_data'),
+        path('management/studies/<uuid:study_uuid>/study_data/<uuid:participant_uuid>', researcher_rest_views.DatapointListView.as_view(), name='study_data_for_participant'),
     ]
 
     researcher_rest_patters = format_suffix_patterns(researcher_rest_patters)
@@ -72,15 +73,15 @@ else:
 if settings.PARTICIPANT_API_ENABLE:
 
     participant_api_patterns = [
-        path('dsu/auth/token', rest_views.ObtainAuthToken.as_view(), name='participant_auth'),
-        path('dsu/auth/token/check', rest_views.ParticipantTokenCheck.as_view(), name='participant_token_check'),
-        path('dsu/auth/logout', rest_views.ParticipantLogOutView.as_view(), name='participant_logout'),
-        path('dsu/dataPoints', rest_views.DatapointCreateView.as_view(), name='dataPoints'),
+        path('dsu/auth/token', participant_api_views.ObtainAuthToken.as_view(), name='participant_auth'),
+        path('dsu/auth/token/check', participant_api_views.ParticipantTokenCheck.as_view(), name='participant_token_check'),
+        path('dsu/auth/logout', participant_api_views.ParticipantLogOutView.as_view(), name='participant_logout'),
+        path('dsu/dataPoints', participant_api_views.DatapointCreateView.as_view(), name='dataPoints'),
     ]
     # ParticipantAccountGeneratorAuthentication
     if getattr(settings, 'PARTICIPANT_ACCOUNT_GENERATION_ENABLED', False):
         participant_account_generation_views = [
-            path('dsu/account/generate', rest_views.ParticipantAccountGeneratorView.as_view(), name='participant_account_generation')
+            path('dsu/account/generate', participant_api_views.ParticipantAccountGeneratorView.as_view(), name='participant_account_generation')
         ]
     else:
         participant_account_generation_views = []
