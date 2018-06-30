@@ -23,6 +23,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from study_management import views as study_management_views
 from study_management import researcher_rest_views
 from study_management import participant_api_views
+from study_management import researcher_api_views
 
 from . import settings
 
@@ -89,6 +90,17 @@ else:
     participant_api_patterns = []
     participant_account_generation_views = []
 
+if settings.RESEARCHER_API_ENABLE:
+    researcher_api_patterns = [
+        path('researcher_api/token-auth', researcher_api_views.ObtainAuthToken.as_view(), name='researcher_api_auth'),
+        path('researcher_api/token-verify', researcher_api_views.VerifyAuthToken.as_view(), name='researcher_api_verify_token'),
+        path('researcher_api/token-refresh', researcher_api_views.RefreshAuthToken.as_view(), name='researcher_api_refresh_token'),
+        path('researcher_api/dataPoints', researcher_api_views.DatapointListView.as_view(), name='researcher_api_dataPoints'),
+        path('researcher_api/profile', researcher_api_views.Profile.as_view(), name='researcher_api_profile'),
+    ]
+else:
+    researcher_api_patterns = []
+
 if settings.HEALTH_CHECK_ENABLED:
     health_check_patterns = [
         # re_path(r'ht/', include('health_check.urls')),
@@ -114,4 +126,5 @@ urlpatterns = admin_patterns + \
     participant_api_patterns + \
     health_check_patterns + \
     security_patterns + \
-    participant_account_generation_views
+    participant_account_generation_views + \
+    researcher_api_patterns

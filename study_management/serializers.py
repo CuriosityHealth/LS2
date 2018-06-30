@@ -1,6 +1,19 @@
 from rest_framework import serializers
-from .models import Datapoint
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from .models import Datapoint, Study
 import json
+
+from django.db import IntegrityError, transaction
+from easyaudit.settings import REMOTE_ADDR_HEADER
+from easyaudit.models import LoginEvent
+from .utils import is_researcher
+
+import jwt
+from django.conf import settings
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DatapointSerializer(serializers.ModelSerializer):
     class Meta:
@@ -172,3 +185,74 @@ class DatapointSerializer(serializers.ModelSerializer):
 class ParticipantAccountGeneratorAuthenticationSerializer(serializers.Serializer):
     generator_id = serializers.UUIDField()
     generator_password = serializers.CharField()
+
+class ResearcherAPIAuthSerializer(AuthTokenSerializer):
+    study_id = serializers.UUIDField()
+
+    def validate(self, attrs):
+
+        request = self.context.get('request')
+
+        logger.debug('validating ResearcherAPIAuthSerializer')
+        logger.debug(attrs)
+        attrs = super().validate(attrs)
+        logger.debug('returned attrs from AuthTokenSerializer')
+        logger.debug(attrs)
+
+        user = attrs['user']
+
+        #check to see if user is a researcher
+        if user != None and is_researcher(user):
+            researcher = user.researcher
+            attrs['researcher'] = researcher
+        else:
+            with transaction.atomic():
+                login_event = LoginEvent.objects.create(login_type=LoginEvent.FAILED,
+                                                        username=user.username,
+                                                        user=user,
+                                                        remote_ip=request.META[REMOTE_ADDR_HEADER])
+
+            msg = 'User is not a researcher'
+            raise serializers.ValidationError(msg, code='authorization')
+
+        ## check to see if researcher has access to study
+        study_id = attrs.get('study_id')
+
+        if study_id:
+            try:
+                study = researcher.studies.get(uuid=study_id)
+            except Study.DoesNotExist:
+
+                with transaction.atomic():
+                    login_event = LoginEvent.objects.create(login_type=LoginEvent.FAILED,
+                                                            username=user.username,
+                                                            user=user,
+                                                            remote_ip=request.META[REMOTE_ADDR_HEADER])
+
+                msg = 'researcher does not have access to study_id'
+                raise serializers.ValidationError(msg, code='authorization')
+
+        else:
+            msg = 'must include study_id'
+            raise serializers.ValidationError(msg, code='authorization')
+
+        attrs['study'] = study
+        return attrs
+
+class ResearcherAPITokenSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+    def validate(self, attrs):
+
+        token = attrs['token']
+
+        try:
+            decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.exceptions.DecodeError:
+            msg = 'invalid token'
+            raise serializers.ValidationError(msg, code='authorization')
+        except jwt.exceptions.ExpiredSignatureError:
+            msg = 'token expired'
+            raise serializers.ValidationError(msg, code='authorization')
+        attrs['decoded_token'] = decoded_token
+        return attrs

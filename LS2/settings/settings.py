@@ -17,6 +17,7 @@ from . import authentication_settings
 from . import admin_portal_settings
 from . import study_management_portal_settings
 from . import participant_api_settings
+from . import researcher_api_settings
 from . import health_check_settings
 from study_management import database_routers
 
@@ -101,6 +102,13 @@ if PARTICIPANT_API_ENABLE:
     REST_FRAMEWORK_ENABLED = True
     extra_participant_api_settings = participant_api_settings.get_additional_settings(os.environ)
     for (key, value) in extra_participant_api_settings.items():
+        globals()[key] = value
+
+RESEARCHER_API_ENABLE = os.environ.get('LS2_RESEARCHER_API_ENABLE', 'false').lower() == 'true'
+if RESEARCHER_API_ENABLE:
+    REST_FRAMEWORK_ENABLED = True
+    extra_researcher_api_settings = researcher_api_settings.get_additional_settings(os.environ)
+    for (key, value) in extra_researcher_api_settings.items():
         globals()[key] = value
 
 # Set Up Admins for error notification
