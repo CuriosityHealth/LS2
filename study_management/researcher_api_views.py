@@ -10,6 +10,8 @@ from django.utils import timezone
 from datetime import timedelta
 from cryptography.fernet import InvalidToken
 
+from rest_framework import exceptions
+
 from .rest_pagination import DatapointListViewPagination
 
 from django.conf import settings
@@ -36,7 +38,7 @@ from .researcher_api_auth import ResearcherAPIDataFetchAuthentication
 from .datapoint_controller import get_datapoint_queryset
 
 import logging
-
+import uuid
 import jwt
 
 # Get an instance of a logger
@@ -63,7 +65,7 @@ class ObtainAuthToken(APIView):
         study = serializer.validated_data['study']
         logger.debug(f'study {study}')
 
-        expiration_time = timezone.now() + timedelta(minutes=10)
+        expiration_time = timezone.now() + timedelta(minutes=settings.RESEARCHER_API_TOKEN_LIFETIME_MINS)
 
         payload = {
             'sub': str(researcher.uuid),
@@ -141,7 +143,7 @@ class RefreshAuthToken(APIView):
 
         ## Serializer takes care of checking for expired token
 
-        expiration_time = timezone.now() + timedelta(minutes=10)
+        expiration_time = timezone.now() + timedelta(minutes=settings.RESEARCHER_API_TOKEN_LIFETIME_MINS)
 
         payload = {
             'sub': decoded_token.get('sub'),
@@ -167,9 +169,9 @@ class DatapointListView(ListAPIView):
         try:
             researcher = Researcher.objects.get(uuid=decoded_token.get('sub'))
         except Researcher.DoesNotExist:
-            return Response({'message': 'invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+            raise exceptions.PermissionDenied()
 
         if not researcher.user.is_active:
-            return Response({'message': 'not authorized'}, status=status.HTTP_401_UNAUTHORIZED)
+            raise exceptions.PermissionDenied()
 
         return get_datapoint_queryset(decoded_token.get('study_id'), self.request.query_params)

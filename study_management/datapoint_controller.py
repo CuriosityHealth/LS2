@@ -1,6 +1,8 @@
 from .models import Datapoint
-
+import uuid
 import logging
+from rest_framework import exceptions
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -51,8 +53,10 @@ def get_datapoint_queryset(study_uuid, parameters):
         try:
             participant_uuid = uuid.UUID(participant_id)
             queryset = queryset.filter(participant_uuid=participant_uuid)
+        except ValueError as e:
+            raise exceptions.ParseError()
         except:
-            return None
+            raise exceptions.NotFound()
 
     ordering = parameters.get('ordering', None)
     if ordering == 'desc':
