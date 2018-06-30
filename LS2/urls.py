@@ -33,67 +33,84 @@ if settings.ADMIN_PORTAL_ENABLE:
 else:
     admin_patterns = []
 
-researcher_account_patterns = [
-    #researcher account urls
-    path('management/login/', study_management_views.ResearcherLoginView.as_view(), name='researcher_login'),
-    path('management/logout/', auth_views.logout, name='researcher_logout'),
+if settings.STUDY_MANAGEMENT_PORTAL_ENABLE:
+    researcher_account_patterns = [
+        #researcher account urls
+        path('management/login/', study_management_views.ResearcherLoginView.as_view(), name='researcher_login'),
+        path('management/logout/', auth_views.logout, name='researcher_logout'),
 
-    path('management/password_change/', auth_views.password_change, name='password_change'),
-    path('management/password_change/done/', auth_views.password_change_done, name='password_change_done'),
+        path('management/password_change/', auth_views.password_change, name='password_change'),
+        path('management/password_change/done/', auth_views.password_change_done, name='password_change_done'),
 
-    path('management/password_reset/', study_management_views.LS2PasswordResetView.as_view(), name='password_reset'),
-    path('management/password_reset/done/', auth_views.password_reset_done, name='password_reset_done'),
-    re_path(r'^management/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        auth_views.password_reset_confirm, name='password_reset_confirm'),
-    path('management/reset/done/', auth_views.password_reset_complete, name='password_reset_complete'),
-]
-
-researcher_study_patterns = [
-    #study management urls
-    path('management/', study_management_views.home, name='researcher_home'),
-    path('management/first_login', study_management_views.first_login, name='researcher_first_login'),
-    path('management/studies/<uuid:study_uuid>/add_participants', study_management_views.add_participants, name='add_participants'),
-    path('management/studies/<uuid:study_uuid>/', study_management_views.study_detail, name='study_detail'),
-]
-
-rest_patterns = [
-    path('management/studies/<uuid:study_uuid>/study_data', rest_views.DatapointListView.as_view(), name='all_study_data'),
-    path('management/studies/<uuid:study_uuid>/study_data/<uuid:participant_uuid>', rest_views.DatapointListView.as_view(), name='study_data_for_participant'),
-]
-
-rest_patterns = format_suffix_patterns(rest_patterns)
-
-participant_patterns = [
-    path('dsu/auth/token', rest_views.ObtainAuthToken.as_view(), name='participant_auth'),
-    path('dsu/auth/token/check', rest_views.ParticipantTokenCheck.as_view(), name='participant_token_check'),
-    path('dsu/auth/logout', rest_views.ParticipantLogOutView.as_view(), name='participant_logout'),
-    path('dsu/dataPoints', rest_views.DatapointCreateView.as_view(), name='dataPoints'),
-]
-
-# ParticipantAccountGeneratorAuthentication
-if getattr(settings, 'PARTICIPANT_ACCOUNT_GENERATION_ENABLED', False):
-    participant_account_generation_views = [
-        path('dsu/account/generate', rest_views.ParticipantAccountGeneratorView.as_view(), name='participant_account_generation')
+        path('management/password_reset/', study_management_views.LS2PasswordResetView.as_view(), name='password_reset'),
+        path('management/password_reset/done/', auth_views.password_reset_done, name='password_reset_done'),
+        re_path(r'^management/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+            auth_views.password_reset_confirm, name='password_reset_confirm'),
+        path('management/reset/done/', auth_views.password_reset_complete, name='password_reset_complete'),
     ]
+
+    researcher_study_patterns = [
+        #study management urls
+        path('management/', study_management_views.home, name='researcher_home'),
+        path('management/first_login', study_management_views.first_login, name='researcher_first_login'),
+        path('management/studies/<uuid:study_uuid>/add_participants', study_management_views.add_participants, name='add_participants'),
+        path('management/studies/<uuid:study_uuid>/', study_management_views.study_detail, name='study_detail'),
+    ]
+
+    researcher_rest_patters = [
+        path('management/studies/<uuid:study_uuid>/study_data', rest_views.DatapointListView.as_view(), name='all_study_data'),
+        path('management/studies/<uuid:study_uuid>/study_data/<uuid:participant_uuid>', rest_views.DatapointListView.as_view(), name='study_data_for_participant'),
+    ]
+
+    researcher_rest_patters = format_suffix_patterns(researcher_rest_patters)
+
 else:
+    researcher_account_patterns = []
+    researcher_study_patterns = []
+    researcher_rest_patters = []
+
+if settings.PARTICIPANT_API_ENABLE:
+
+    participant_api_patterns = [
+        path('dsu/auth/token', rest_views.ObtainAuthToken.as_view(), name='participant_auth'),
+        path('dsu/auth/token/check', rest_views.ParticipantTokenCheck.as_view(), name='participant_token_check'),
+        path('dsu/auth/logout', rest_views.ParticipantLogOutView.as_view(), name='participant_logout'),
+        path('dsu/dataPoints', rest_views.DatapointCreateView.as_view(), name='dataPoints'),
+    ]
+    # ParticipantAccountGeneratorAuthentication
+    if getattr(settings, 'PARTICIPANT_ACCOUNT_GENERATION_ENABLED', False):
+        participant_account_generation_views = [
+            path('dsu/account/generate', rest_views.ParticipantAccountGeneratorView.as_view(), name='participant_account_generation')
+        ]
+    else:
+        participant_account_generation_views = []
+else:
+    participant_api_patterns = []
     participant_account_generation_views = []
 
-health_check_patterns = [
-    # re_path(r'ht/', include('health_check.urls')),
-    re_path(r'ht/', study_management_views.HealthCheckCustomView.as_view(), name='health_check_custom'),
-]
+if settings.HEALTH_CHECK_ENABLED:
+    health_check_patterns = [
+        # re_path(r'ht/', include('health_check.urls')),
+        re_path(r'ht/', study_management_views.HealthCheckCustomView.as_view(), name='health_check_custom'),
+    ]
+else:
+    health_check_patterns = []
 
-security_patterns = [
-    # session_security support
-    # Session security forces log out after n seconds of inactivity
-    re_path(r'session_security/', include('session_security.urls')),
-]
+if settings.ADMIN_PORTAL_ENABLE or settings.STUDY_MANAGEMENT_PORTAL_ENABLE:
+    security_patterns = [
+        # session_security support
+        # Session security forces log out after n seconds of inactivity
+        re_path(r'session_security/', include('session_security.urls')),
+    ]
+else:
+    security_patterns = []
 
 
 urlpatterns = admin_patterns + \
     researcher_account_patterns + \
     researcher_study_patterns + \
-    rest_patterns + participant_patterns + \
+    researcher_rest_patters + \
+    participant_api_patterns + \
     health_check_patterns + \
     security_patterns + \
     participant_account_generation_views
