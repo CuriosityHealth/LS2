@@ -14,6 +14,10 @@ import os
 from django.core.exceptions import ImproperlyConfigured
 from . import database_settings
 from . import authentication_settings
+from . import admin_portal_settings
+from . import study_management_portal_settings
+from . import participant_api_settings
+from . import health_check_settings
 from study_management import database_routers
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -78,8 +82,26 @@ if DEBUG:
 
     INTERNAL_IPS = glob_list(['*'])
 
+REST_FRAMEWORK_ENABLED = False
+
 ADMIN_PORTAL_ENABLE = os.environ.get('LS2_ADMIN_PORTAL_ENABLE', 'false').lower() == 'true'
-ADMIN_PORTAL_ROOT = os.environ.get('LS2_ADMIN_PORTAL_ROOT', 'admin/')
+if ADMIN_PORTAL_ENABLE:
+    extra_admin_portal_settings = admin_portal_settings.get_additional_settings(os.environ)
+    for (key, value) in extra_admin_portal_settings.items():
+        globals()[key] = value
+
+STUDY_MANAGEMENT_PORTAL_ENABLE = os.environ.get('LS2_STUDY_MANAGEMENT_PORTAL_ENABLE', 'false').lower() == 'true'
+if STUDY_MANAGEMENT_PORTAL_ENABLE:
+    extra_study_management_portal_settings = study_management_portal_settings.get_additional_settings(os.environ)
+    for (key, value) in extra_study_management_portal_settings.items():
+        globals()[key] = value
+
+PARTICIPANT_API_ENABLE = os.environ.get('LS2_PARTICIPANT_API_ENABLE', 'false').lower() == 'true'
+if PARTICIPANT_API_ENABLE:
+    REST_FRAMEWORK_ENABLED = True
+    extra_participant_api_settings = participant_api_settings.get_additional_settings(os.environ)
+    for (key, value) in extra_participant_api_settings.items():
+        globals()[key] = value
 
 # Set Up Admins for error notification
 ADMIN_NAME = os.environ.get('LS2_ADMIN_NAME')
@@ -88,13 +110,6 @@ if ADMIN_NAME != None and ADMIN_EMAIL != None:
     ADMINS = [(ADMIN_NAME, ADMIN_EMAIL)]
 else:
     ADMINS = []
-
-## NEW KEYS SHOULD BE ADDED AT THE END OF THE LIST!!!
-fernet_keys_string = os.environ.get('FERNET_KEYS')
-FERNET_KEYS = fernet_keys_string.split('\n')
-FERNET_KEYS.reverse()
-if len(FERNET_KEYS) == 0 or len(FERNET_KEYS[0]) == 0:
-    raise ImproperlyConfigured("No FERNET_KEYS specified")
 
 INSTALLED_APPS = [
     'study_management.apps.StudyManagementConfig',
@@ -112,6 +127,16 @@ INSTALLED_APPS = [
     'health_check',
     'health_check.db',
 ]
+
+if REST_FRAMEWORK_ENABLED:
+    REST_FRAMEWORK = {
+        'DEFAULT_AUTHENTICATION_CLASSES': (
+            'rest_framework.authentication.TokenAuthentication',
+        ),
+        'DEFAULT_PERMISSION_CLASSES': (
+            'rest_framework.permissions.IsAuthenticated',
+        )
+    }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -134,22 +159,9 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
 ]
 
-AUTHENTICATION_BACKENDS = authentication_settings.get_authentication_backends(os.environ)
-if AUTHENTICATION_BACKENDS == None:
-    raise ImproperlyConfigured("Authentication backends improperly configured")
-
-additional_settings = authentication_settings.get_additional_settings(os.environ)
-for (key, value) in additional_settings.items():
+auth_settings = authentication_settings.get_auth_settings(os.environ)
+for (key, value) in auth_settings.items():
     globals()[key] = value
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    )
-}
 
 ROOT_URLCONF = 'LS2.urls'
 
@@ -178,7 +190,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST = os.environ.get('LS2_EMAIL_HOST')
 # EMAIL_PORT = 587
-EMAIL_PORT = os.environ.get('LS2_EMAIL_PORT')
+
+##Need to conver this to int
+if os.environ.get('LS2_EMAIL_PORT') != None:
+    EMAIL_PORT = int(os.environ.get('LS2_EMAIL_PORT'))
+    
 # EMAIL_HOST_USER = '*******************'
 EMAIL_HOST_USER = os.environ.get('LS2_EMAIL_HOST_USER')
 # EMAIL_HOST_PASSWORD = '*******************'
@@ -193,10 +209,6 @@ if os.environ.get('LS2_EMAIL_USE_SSL') != None:
 DEFAULT_FROM_EMAIL = os.environ.get('LS2_FROM_EMAIL')
 SERVER_EMAIL = os.environ.get('LS2_FROM_EMAIL')
 
-## Data Export
-DATA_EXPORT_ENABLED = os.environ.get('LS2_DATA_EXPORT_ENABLED', 'true').lower() == 'true'
-DATA_DOWNLOAD_DEFAULT = os.environ.get('LS2_DATA_DOWNLOAD_DEFAULT', 'false').lower() == 'true'
-
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
@@ -204,6 +216,12 @@ DATA_DOWNLOAD_DEFAULT = os.environ.get('LS2_DATA_DOWNLOAD_DEFAULT', 'false').low
 # less than 48 hours ago
 LS2_BACKUP_AGE_MINS_MAX = int(os.environ.get('LS2_BACKUP_AGE_MINS_MAX', 48*60))
 LS2_BACKUP_HEALTH_CHECK_ENABLED = os.environ.get('LS2_BACKUP_HEALTH_CHECK_ENABLED', 'true').lower() == 'true'
+
+HEALTH_CHECK_ENABLED = os.environ.get('LS2_HEALTH_CHECK_ENABLED', 'false').lower() == 'true'
+if HEALTH_CHECK_ENABLED:
+    health_settings = health_check_settings.get_settings(os.environ)
+    for (key, value) in health_settings.items():
+        globals()[key] = value
 
 LOGGING = {
     'version': 1,
@@ -293,11 +311,16 @@ LOGGING = {
     }
 }
 
-DATABASES = database_settings.get_databases(os.environ)
-if DATABASES == None:
-    raise ImproperlyConfigured("Databases improperly configured")
 
-DATABASE_ROUTERS = database_settings.get_database_routers(os.environ)
+extra_database_settings = database_settings.get_database_settings(os.environ)
+for (key, value) in extra_database_settings.items():
+    globals()[key] = value
+
+# DATABASES = database_settings.get_databases(os.environ)
+# if DATABASES == None:
+#     raise ImproperlyConfigured("Databases improperly configured")
+#
+# DATABASE_ROUTERS = database_settings.get_database_routers(os.environ)
 
 # easyaudit settings
 # NOTE: We patched easy audit a bit due to errors in the request signal
@@ -314,6 +337,11 @@ DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = [
     'authtoken.Token',
     'db.TestModel',
 ]
+
+DJANGO_EASY_AUDIT_UNREGISTERED_URLS_EXTRA = [
+    r'^/ht/'
+]
+
 
 DJANGO_EASY_AUDIT_REMOTE_ADDR_HEADER = 'HTTP_X_REAL_IP'
 
@@ -397,6 +425,3 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = '/static'
 STATICFILES_DIRS = [ os.path.join(BASE_DIR, "static") ]
-
-LOGIN_REDIRECT_URL = 'researcher_home'
-LOGIN_URL = 'researcher_login'
