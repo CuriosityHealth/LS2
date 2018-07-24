@@ -4,8 +4,8 @@ def get_additional_settings(environ):
     additional_settings = {}
     
     ## Data Export
-    additional_settings["DATA_EXPORT_ENABLED"] = environ.get('LS2_DATA_EXPORT_ENABLED', 'true').lower() == 'true'
-    additional_settings["DATA_DOWNLOAD_DEFAULT"] = environ.get('LS2_DATA_DOWNLOAD_DEFAULT', 'false').lower() == 'true'
+    additional_settings["DATA_EXPORT_ENABLED"] = environ.get('LS2_DATA_EXPORT_ENABLED', True)
+    additional_settings["DATA_DOWNLOAD_DEFAULT"] = environ.get('LS2_DATA_DOWNLOAD_DEFAULT', False)
 
     additional_settings["LOGIN_REDIRECT_URL"] = 'researcher_home'
     additional_settings["LOGIN_URL"] = 'researcher_login'

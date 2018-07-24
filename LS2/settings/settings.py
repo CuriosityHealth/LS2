@@ -19,6 +19,7 @@ from . import study_management_portal_settings
 from . import participant_api_settings
 from . import health_check_settings
 from study_management import database_routers
+from . import settings_backend
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -29,11 +30,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # SECURITY WARNING: don't run with debug turned on in production!
 # LS2_DEBUG env variable is a string,
 # ignore case, check that it matches true for debug
+# DEBUG = environ.get('LS2_DEBUG', 'false').lower() == 'true'
 DEBUG = os.environ.get('LS2_DEBUG', 'false').lower() == 'true'
 
+os_environ_dict = dict(os.environ)
+environ = settings_backend.get_settings_environ(os_environ_dict)
+
 # SECURITY WARNING: keep the secret key used in production secret!
-LS2_HOST = os.environ.get('LS2_HOSTNAME')
-SECRET_KEY = os.environ.get('DJANGO_SECRET')
+LS2_HOST = environ.get('LS2_HOSTNAME')
+SECRET_KEY = environ.get('DJANGO_SECRET')
 if SECRET_KEY == None or len(SECRET_KEY) < 32:
     raise ImproperlyConfigured(
         "Invalid secret key."
@@ -66,8 +71,8 @@ if DEBUG==False:
         raise ImproperlyConfigured("No Host Specified. Check the LS2_HOSTNAME environment variable")
 else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
-    if os.environ.get('LS2_EXTRA_DEBUG_HOSTS') != None:
-        extra_hosts = os.environ.get('LS2_EXTRA_DEBUG_HOSTS').split(',')
+    if environ.get('LS2_EXTRA_DEBUG_HOSTS') != None:
+        extra_hosts = environ.get('LS2_EXTRA_DEBUG_HOSTS')
         ALLOWED_HOSTS = ALLOWED_HOSTS + extra_hosts
         CSRF_TRUSTED_ORIGINS = extra_hosts
 
@@ -84,28 +89,28 @@ if DEBUG:
 
 REST_FRAMEWORK_ENABLED = False
 
-ADMIN_PORTAL_ENABLE = os.environ.get('LS2_ADMIN_PORTAL_ENABLE', 'false').lower() == 'true'
+ADMIN_PORTAL_ENABLE = environ.get('LS2_ADMIN_PORTAL_ENABLE', False)
 if ADMIN_PORTAL_ENABLE:
-    extra_admin_portal_settings = admin_portal_settings.get_additional_settings(os.environ)
+    extra_admin_portal_settings = admin_portal_settings.get_additional_settings(environ)
     for (key, value) in extra_admin_portal_settings.items():
         globals()[key] = value
 
-STUDY_MANAGEMENT_PORTAL_ENABLE = os.environ.get('LS2_STUDY_MANAGEMENT_PORTAL_ENABLE', 'false').lower() == 'true'
+STUDY_MANAGEMENT_PORTAL_ENABLE = environ.get('LS2_STUDY_MANAGEMENT_PORTAL_ENABLE', False)
 if STUDY_MANAGEMENT_PORTAL_ENABLE:
-    extra_study_management_portal_settings = study_management_portal_settings.get_additional_settings(os.environ)
+    extra_study_management_portal_settings = study_management_portal_settings.get_additional_settings(environ)
     for (key, value) in extra_study_management_portal_settings.items():
         globals()[key] = value
 
-PARTICIPANT_API_ENABLE = os.environ.get('LS2_PARTICIPANT_API_ENABLE', 'false').lower() == 'true'
+PARTICIPANT_API_ENABLE = environ.get('LS2_PARTICIPANT_API_ENABLE', False)
 if PARTICIPANT_API_ENABLE:
     REST_FRAMEWORK_ENABLED = True
-    extra_participant_api_settings = participant_api_settings.get_additional_settings(os.environ)
+    extra_participant_api_settings = participant_api_settings.get_additional_settings(environ)
     for (key, value) in extra_participant_api_settings.items():
         globals()[key] = value
 
 # Set Up Admins for error notification
-ADMIN_NAME = os.environ.get('LS2_ADMIN_NAME')
-ADMIN_EMAIL = os.environ.get('LS2_ADMIN_EMAIL')
+ADMIN_NAME = environ.get('LS2_ADMIN_NAME')
+ADMIN_EMAIL = environ.get('LS2_ADMIN_EMAIL')
 if ADMIN_NAME != None and ADMIN_EMAIL != None:
     ADMINS = [(ADMIN_NAME, ADMIN_EMAIL)]
 else:
@@ -159,7 +164,7 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
 ]
 
-auth_settings = authentication_settings.get_auth_settings(os.environ)
+auth_settings = authentication_settings.get_auth_settings(environ)
 for (key, value) in auth_settings.items():
     globals()[key] = value
 
@@ -188,38 +193,38 @@ SITE_ID = 1
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST = os.environ.get('LS2_EMAIL_HOST')
+EMAIL_HOST = environ.get('LS2_EMAIL_HOST')
 # EMAIL_PORT = 587
 
 ##Need to conver this to int
-if os.environ.get('LS2_EMAIL_PORT') != None:
-    EMAIL_PORT = int(os.environ.get('LS2_EMAIL_PORT'))
+if environ.get('LS2_EMAIL_PORT') != None:
+    EMAIL_PORT = int(environ.get('LS2_EMAIL_PORT'))
     
 # EMAIL_HOST_USER = '*******************'
-EMAIL_HOST_USER = os.environ.get('LS2_EMAIL_HOST_USER')
+EMAIL_HOST_USER = environ.get('LS2_EMAIL_HOST_USER')
 # EMAIL_HOST_PASSWORD = '*******************'
-EMAIL_HOST_PASSWORD = os.environ.get('LS2_EMAIL_HOST_PASSWORD')
+EMAIL_HOST_PASSWORD = environ.get('LS2_EMAIL_HOST_PASSWORD')
 
-if os.environ.get('LS2_EMAIL_USE_TLS') != None:
-    EMAIL_USE_TLS = os.environ.get('LS2_EMAIL_USE_TLS').lower() == 'true'
+if environ.get('LS2_EMAIL_USE_TLS') != None:
+    EMAIL_USE_TLS = environ.get('LS2_EMAIL_USE_TLS')
 
-if os.environ.get('LS2_EMAIL_USE_SSL') != None:
-    EMAIL_USE_SSL = os.environ.get('LS2_EMAIL_USE_SSL').lower() == 'true'
+if environ.get('LS2_EMAIL_USE_SSL') != None:
+    EMAIL_USE_SSL = environ.get('LS2_EMAIL_USE_SSL')
 # DEFAULT_FROM_EMAIL = '*******************'
-DEFAULT_FROM_EMAIL = os.environ.get('LS2_FROM_EMAIL')
-SERVER_EMAIL = os.environ.get('LS2_FROM_EMAIL')
+DEFAULT_FROM_EMAIL = environ.get('LS2_FROM_EMAIL')
+SERVER_EMAIL = environ.get('LS2_FROM_EMAIL')
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 # the backup status endpoint will return 500 if a backup hasnt been completed
 # less than 48 hours ago
-LS2_BACKUP_AGE_MINS_MAX = int(os.environ.get('LS2_BACKUP_AGE_MINS_MAX', 48*60))
-LS2_BACKUP_HEALTH_CHECK_ENABLED = os.environ.get('LS2_BACKUP_HEALTH_CHECK_ENABLED', 'true').lower() == 'true'
+LS2_BACKUP_AGE_MINS_MAX = int(environ.get('LS2_BACKUP_AGE_MINS_MAX', 48*60))
+LS2_BACKUP_HEALTH_CHECK_ENABLED = environ.get('LS2_BACKUP_HEALTH_CHECK_ENABLED', True)
 
-HEALTH_CHECK_ENABLED = os.environ.get('LS2_HEALTH_CHECK_ENABLED', 'false').lower() == 'true'
+HEALTH_CHECK_ENABLED = environ.get('LS2_HEALTH_CHECK_ENABLED', False)
 if HEALTH_CHECK_ENABLED:
-    health_settings = health_check_settings.get_settings(os.environ)
+    health_settings = health_check_settings.get_settings(environ)
     for (key, value) in health_settings.items():
         globals()[key] = value
 
@@ -312,15 +317,15 @@ LOGGING = {
 }
 
 
-extra_database_settings = database_settings.get_database_settings(os.environ)
+extra_database_settings = database_settings.get_database_settings(environ)
 for (key, value) in extra_database_settings.items():
     globals()[key] = value
 
-# DATABASES = database_settings.get_databases(os.environ)
+# DATABASES = database_settings.get_databases(environ)
 # if DATABASES == None:
 #     raise ImproperlyConfigured("Databases improperly configured")
 #
-# DATABASE_ROUTERS = database_settings.get_database_routers(os.environ)
+# DATABASE_ROUTERS = database_settings.get_database_routers(environ)
 
 # easyaudit settings
 # NOTE: We patched easy audit a bit due to errors in the request signal
@@ -347,13 +352,13 @@ DJANGO_EASY_AUDIT_REMOTE_ADDR_HEADER = 'HTTP_X_REAL_IP'
 
 # LS2_SECURITY_PASSWORD_AGE_LIMIT_MINUTES = 10
 # LS2_SECURITY_PASSWORD_AGE_WARN_MINUTES = 5
-LS2_SECURITY_ADDITIONAL_BCRYPT_ROUNDS = int(os.environ.get('LS2_SECURITY_ADDITIONAL_BCRYPT_ROUNDS', 2))
+LS2_SECURITY_ADDITIONAL_BCRYPT_ROUNDS = int(environ.get('LS2_SECURITY_ADDITIONAL_BCRYPT_ROUNDS', 2))
 
-PARTICIPANT_ACCOUNT_GENERATION_ENABLED = os.environ.get('PARTICIPANT_ACCOUNT_GENERATION_ENABLED', 'false').lower() == 'true'
-PARTICIPANT_ACCOUNT_GENERATOR_LOGIN_RATE_LIMIT_ENABLED = os.environ.get('PARTICIPANT_ACCOUNT_GENERATOR_LOGIN_RATE_LIMIT_ENABLED', 'true').lower() == 'true'
-PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_REQUESTS = int(os.environ.get('PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_REQUESTS', 5))
-PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES = int(os.environ.get('PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES', 1))
-PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_TIMEOUT_MINUTES = int(os.environ.get('PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_TIMEOUT_MINUTES', 1))
+PARTICIPANT_ACCOUNT_GENERATION_ENABLED = environ.get('PARTICIPANT_ACCOUNT_GENERATION_ENABLED', False)
+PARTICIPANT_ACCOUNT_GENERATOR_LOGIN_RATE_LIMIT_ENABLED = environ.get('PARTICIPANT_ACCOUNT_GENERATOR_LOGIN_RATE_LIMIT_ENABLED', True)
+PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_REQUESTS = int(environ.get('PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_REQUESTS', 5))
+PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES = int(environ.get('PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES', 1))
+PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_TIMEOUT_MINUTES = int(environ.get('PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_TIMEOUT_MINUTES', 1))
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # SESSION_SECURITY_EXPIRE_AFTER = 10
