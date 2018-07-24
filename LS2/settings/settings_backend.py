@@ -13,10 +13,15 @@ def get_settings_environ(environ):
         settings = load_settings_from_file(settings_config)
 
     elif settings_config.get("LS2_SETTINGS_BACKEND") == 'aws-secretsmanager':
-        settings = load_settings_from_aws_secrets_manage(settings_config)
+        return_settings = load_settings_from_aws_secrets_manager(settings_config)
+        if return_settings == None:
+            raise ImproperlyConfigured("Cannot access settings from AWS SecretsManager")
+            return
+        settings = return_settings
 
     else:
         raise ImproperlyConfigured("Invalid settings backend")
+        return
 
     new_environ = settings.get('common', {})
     app_config_id = environ.get('APP_CONFIG_ID')
@@ -31,15 +36,16 @@ def load_settings_from_file(settings_config):
     settings_file = settings_config.get("LS2_SETTINGS_FILE")
     return json.load(open(settings_file, 'r'))
 
-def load_settings_from_aws_secrets_manage(settings_config):
+def load_settings_from_aws_secrets_manager(settings_config):
     ##AWS_ACCESS_KEY_ID
     aws_access_key_id = settings_config.get('AWS_ACCESS_KEY_ID')
     ##AWS_SECRET_ACCESS_KEY
     aws_secret_access_key = settings_config.get('AWS_SECRET_ACCESS_KEY')
 
     secret_name = settings_config.get("SECRET_NAME")
-
-    return get_secret(aws_access_key_id, aws_secret_access_key, secret_name)
+    
+    settings = get_secret(aws_access_key_id, aws_secret_access_key, secret_name)
+    return settings
 
 # Use this code snippet in your app.
 # If you need more information about configurations or implementing the sample code, visit the AWS docs:   
