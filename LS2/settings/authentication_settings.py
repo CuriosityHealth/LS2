@@ -8,7 +8,7 @@ def get_auth_settings(environ):
     auth_settings = {}
     auth_settings["AUTHENTICATION_BACKENDS"] = get_authentication_backends(environ)
 
-    ldap_enabled = environ.get('LS2_LDAP_ENABLED', 'false').lower() == 'true'
+    ldap_enabled = environ.get('LS2_LDAP_ENABLED', False)
     if ldap_enabled:
         auth_settings["AUTH_LDAP_SERVER_URI"] = environ.get('LS2_LDAP_SERVER_URI')
         auth_settings["AUTH_LDAP_BIND_DN"] = environ.get('LS2_LDAP_BIND_DN')
@@ -36,12 +36,12 @@ def get_authentication_backends(environ):
 
     auth_backends = []
 
-    model_auth_enabled = environ.get('LS2_MODEL_AUTH_ENABLED', 'true').lower() == 'true'
+    model_auth_enabled = environ.get('LS2_MODEL_AUTH_ENABLED', True)
     if model_auth_enabled:
         auth_backends.append('study_management.auth_backends.RateLimitedAuthenticationBackend')
 
     #default is false
-    ldap_enabled = environ.get('LS2_LDAP_ENABLED', 'false').lower() == 'true'
+    ldap_enabled = environ.get('LS2_LDAP_ENABLED', False)
     if ldap_enabled:
         auth_backends.append('study_management.auth_backends.ProtectedLDAPAuthenticationBackend')
 
