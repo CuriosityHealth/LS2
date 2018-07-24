@@ -7,38 +7,39 @@ def get_settings_environ(environ):
     settings_config_path = environ.get('LS2_SETTINGS_CONFIG_FILE', '/etc/ls2/settings/config.json')
     settings_config = json.load(open(settings_config_path, 'r'))
 
+    settings = {}
+
     if settings_config.get("LS2_SETTINGS_BACKEND") == 'local':
-        return get_settings_from_environ(environ, settings_config)
+        settings = load_settings_from_file(settings_config)
+
     elif settings_config.get("LS2_SETTINGS_BACKEND") == 'aws-secretsmanager':
-        return get_settings_from_aws_settings_manager(environ, settings_config)
+        settings = load_settings_from_aws_secrets_manage(settings_config)
+
     else:
         raise ImproperlyConfigured("Invalid settings backend")
 
-def get_settings_from_environ(environ, settings_config):
-
-    new_environ = {}
-
-    settings_files = settings_config.get("LS2_SETTINGS_FILES")
-    for filename in settings_files:
-        settings_dict = json.load(open(filename, 'r'))
-        new_environ.update(settings_dict)
-
+    new_environ = settings.get('common', {})
+    app_config_id = environ.get('APP_CONFIG_ID')
+    if app_config_id != None:
+        app_config = settings.get('app', {}).get(app_config_id, {})
+        new_environ.update(app_config)
+        
     return new_environ
 
-def get_settings_from_aws_settings_manager(environ, settings_config):
+
+def load_settings_from_file(settings_config):
+    settings_file = settings_config.get("LS2_SETTINGS_FILE")
+    return json.load(open(settings_file, 'r'))
+
+def load_settings_from_aws_secrets_manage(settings_config):
     ##AWS_ACCESS_KEY_ID
     aws_access_key_id = settings_config.get('AWS_ACCESS_KEY_ID')
     ##AWS_SECRET_ACCESS_KEY
     aws_secret_access_key = settings_config.get('AWS_SECRET_ACCESS_KEY')
 
-    new_environ = {}
+    secret_name = settings_config.get("SECRET_NAME")
 
-    secret_names = settings_config.get("SECRET_NAMES")
-    for secret_name in secret_names:
-        settings_dict = get_secret(aws_access_key_id, aws_secret_access_key, secret_name)
-        new_environ.update(settings_dict)
-
-    return new_environ
+    return get_secret(aws_access_key_id, aws_secret_access_key, secret_name)
 
 # Use this code snippet in your app.
 # If you need more information about configurations or implementing the sample code, visit the AWS docs:   
@@ -46,11 +47,8 @@ def get_settings_from_aws_settings_manager(environ, settings_config):
 
 import boto3
 from botocore.exceptions import ClientError
-# import json
 
-def get_secret(aws_access_key_id, aws_secret_access_key, secret_name):
-    endpoint_url = "https://secretsmanager.us-east-1.amazonaws.com"
-    region_name = "us-east-1"
+def get_secret(aws_access_key_id, aws_secret_access_key, secret_name, endpoint_url="https://secretsmanager.us-east-1.amazonaws.com", region_name="us-east-1"):
 
     session = boto3.session.Session()
     client = session.client(
