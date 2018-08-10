@@ -38,16 +38,16 @@ if settings.STUDY_MANAGEMENT_PORTAL_ENABLE:
     researcher_account_patterns = [
         #researcher account urls
         path('management/login/', study_management_views.ResearcherLoginView.as_view(), name='researcher_login'),
-        path('management/logout/', auth_views.logout, name='researcher_logout'),
+        path('management/logout/', auth_views.LogoutView.as_view(), name='researcher_logout'),
 
-        path('management/password_change/', auth_views.password_change, name='password_change'),
-        path('management/password_change/done/', auth_views.password_change_done, name='password_change_done'),
+        path('management/password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
+        path('management/password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
 
         path('management/password_reset/', study_management_views.LS2PasswordResetView.as_view(), name='password_reset'),
-        path('management/password_reset/done/', auth_views.password_reset_done, name='password_reset_done'),
+        path('management/password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
         re_path(r'^management/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-            auth_views.password_reset_confirm, name='password_reset_confirm'),
-        path('management/reset/done/', auth_views.password_reset_complete, name='password_reset_complete'),
+            auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+        path('management/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     ]
 
     researcher_study_patterns = [

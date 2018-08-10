@@ -1,3 +1,5 @@
+* 1.7.2
+    * Updated dependencies, mainly Django 2.1. Needed to update URLS to change to class based views due to removal of function based views from Django contrib auth views.
 * 1.7.1
     * Fixed bug where admin logout did not take into account the admin root setting
 * 1.7.0
