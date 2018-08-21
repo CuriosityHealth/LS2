@@ -298,19 +298,24 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True
         },
+        'study_management': {
+            'handlers': ['django'],
+            'level': 'WARN',
+            'propagate': True
+        },
         'django': {
             'handlers': ['django'],
-            'level': 'INFO',
+            'level': 'WARN',
             'propagate': True
         },
         'django.request': {
             'handlers': ['request', 'mail_admins'],
-            'level': 'DEBUG',
+            'level': 'WARN',
             'propagate': True
         },
         'django.server': {
             'handlers': ['server'],
-            'level': 'DEBUG',
+            'level': 'WARN',
             'propagate': True
         },
     }
