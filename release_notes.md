@@ -1,3 +1,7 @@
+* 1.7.3
+    * Fixed issues where crashes would sometimes occur in Admin portal during password change & logout
+    * Updated default values for participant account generation throttling
+    * Added warning logs when a failure occurs during participant account generation
 * 1.7.2
     * Updated dependencies, mainly Django 2.1. Needed to update URLS to change to class based views due to removal of function based views from Django contrib auth views.
 * 1.7.1
