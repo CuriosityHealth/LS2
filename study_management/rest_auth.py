@@ -58,7 +58,6 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
             ).latest('disable_until')
 
             if generation_timeout != None and generation_timeout.disabled():
-                logger.debug("Generation is disabled")
                 return True
             else:
                 return False
@@ -79,7 +78,7 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
         since_time = timedelta(minutes=settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES)
         earlier = now - since_time
 
-        logger.info(f'minutes {settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES}')
+        # logger.info(f'minutes {settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES}')
 
         try:
             generation_requests = ParticipantAccountGenerationRequestEvent.objects.filter(
@@ -151,9 +150,10 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
             except:
                 pass
 
+            logger.warn(f'Malformed generator id or passphrase')
             return None
 
-        logger.debug(serializer.validated_data)
+        # logger.debug(serializer.validated_data)
 
         generator_id = serializer.validated_data['generator_id']
         generator_password = serializer.validated_data['generator_password']
@@ -171,9 +171,11 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
             pass
 
         if generator_id == None or generator_password == None:
+            logger.warn(f'Missing generator id or passphrase')
             return None
 
         if self.should_throttle(generator_id, remote_ip):
+            logger.warn(f'Account generation is throttled')
             return None
 
         try:
@@ -181,8 +183,12 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
             logger.debug(generator)
             if generator.check_password(generator_password):
                 return (AnonymousUser(), generator)
+            else:
+                logger.warn(f'The passphrase provided is incorrect')
+                return None
 
         except ParticipantAccountGenerator.DoesNotExist:
+            logger.warn(f'Generator does not exist')
             return None
 
         return None
