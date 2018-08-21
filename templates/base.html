@@ -31,10 +31,12 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            {% if user.researcher %}
-            <a class="navbar-brand" href="{% url 'researcher_home' %}">
-            {% else %}
-            <a class="navbar-brand" href="{% url 'admin:index' %}">
+            {% if user.is_authenticated %}
+              {% if user.researcher %}
+              <a class="navbar-brand" href="{% url 'researcher_home' %}">
+              {% else %}
+              <a class="navbar-brand" href="{% url 'admin:index' %}">
+              {% endif %}
             {% endif %}
               <img class="logo" alt="Curiosity Health" src="{% static 'img/full_logo.png' %}">
             </a>
