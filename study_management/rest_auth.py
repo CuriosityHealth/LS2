@@ -9,7 +9,10 @@ from .models import (
     ParticipantAccountGenerationRequestEvent,
     ParticipantAccountGenerationTimeout
 )
-from .serializers import ParticipantAccountGeneratorAuthenticationSerializer
+from .serializers import (
+    TokenBasedParticipantAccountGeneratorAuthenticationSerializer,
+    ParticipantAccountGeneratorAuthenticationSerializer
+)
 
 from django.db import IntegrityError, transaction
 from easyaudit.settings import REMOTE_ADDR_HEADER
@@ -189,6 +192,131 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
         except ParticipantAccountGenerator.DoesNotExist:
             logger.warn(f'Generator does not exist')
+            return None
+
+        return None
+
+
+class TokenBasedParticipantAccountGeneratorAuthentication(BaseAuthentication):
+
+    # def disabled_via_timeout(self, generator_id, remote_ip):
+    #     try:
+
+    #         generation_timeout = ParticipantAccountGenerationTimeout.objects.filter(
+    #             generator_id=generator_id,
+    #             remote_ip=remote_ip,
+    #             disable_until__gt=timezone.now()
+    #         ).latest('disable_until')
+
+    #         if generation_timeout != None and generation_timeout.disabled():
+    #             return True
+    #         else:
+    #             return False
+
+    #     except ParticipantAccountGenerationTimeout.DoesNotExist:
+    #         return False
+
+    def should_throttle(self, generator_id, remote_ip):
+
+        return False
+
+        # if settings.PARTICIPANT_ACCOUNT_GENERATOR_LOGIN_RATE_LIMIT_ENABLED == False:
+        #     return False
+
+        # ## check for existing timeout
+        # if self.disabled_via_timeout(generator_id, remote_ip):
+        #     return True
+
+        # now = timezone.now()
+        # since_time = timedelta(minutes=settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES)
+        # earlier = now - since_time
+
+        # # logger.info(f'minutes {settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES}')
+
+        # try:
+        #     generation_requests = ParticipantAccountGenerationRequestEvent.objects.filter(
+        #         remote_ip=remote_ip,
+        #         generator_id=generator_id,
+        #         created_date__gt=earlier
+        #     )
+        # except ParticipantAccountGenerationRequestEvent.DoesNotExist:
+        #     return False
+
+        # logger.info(f'there have been {generation_requests.count()} generation requests')
+
+        # if generation_requests.count() >= settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_REQUESTS:
+        #     ## we should create a timeout here
+        #     disable_until = now + timedelta(minutes=settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_TIMEOUT_MINUTES)
+        #     generation_timeout = \
+        #         ParticipantAccountGenerationTimeout.objects.create(
+        #             generator_id=generator_id,
+        #             remote_ip=remote_ip,
+        #             disable_until=disable_until
+        #         )
+
+        #     logger.debug(generation_timeout)
+
+        #     return True
+
+
+
+    def authenticate(self, request):
+        
+        remote_ip = get_client_ip(request)
+        ## Log Event Here
+        serializer = TokenBasedParticipantAccountGeneratorAuthenticationSerializer(data=request.data)
+        if not serializer.is_valid():
+            try:
+                with transaction.atomic():
+                    generation_request_event = \
+                        ParticipantAccountGenerationRequestEvent.objects.create(
+                            generator_id=None,
+                            remote_ip=remote_ip
+                        )
+            except:
+                pass
+
+            logger.warn(f'Malformed generator id or token')
+            return None
+
+        # logger.debug(serializer.validated_data)
+
+        generator_id = serializer.validated_data['generator_id']
+        token = serializer.validated_data['token']
+
+        try:
+            with transaction.atomic():
+                logger.debug("GENERATING RequestEvent")
+                generation_request_event = ParticipantAccountGenerationRequestEvent.objects.create(
+                        generator_id=generator_id,
+                        remote_ip=remote_ip
+                    )
+
+                logger.debug(generation_request_event)
+        except:
+            pass
+
+        if generator_id == None or token == None:
+            logger.warn(f'Missing generator id or token')
+            return None
+
+        if self.should_throttle(generator_id, remote_ip):
+            logger.warn(f'Account generation is throttled')
+            return None
+
+        try:
+            participantAccountToken = ParticipantAccountToken.objects.get(token=token, account_generator__uuid=generator_id)
+            logger.debug(participantAccountToken)
+
+            if participantAccountToken.can_generate_participant_account():
+                logger.warn(f'Invalid token')
+                return None
+
+            else:
+                return (token, None)
+
+        except ParticipantAccountToken.DoesNotExist:
+            logger.warn(f'Invalid token')
             return None
 
         return None

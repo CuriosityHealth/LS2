@@ -31,21 +31,25 @@
   </div>
   {% endif %}
 
-  <div class="row ls2-subcontainer">
-    <div class="col-md-8 center-block">
-      <div class="row">
-        <label for="id_username" class="col-md-2 ls2-body-text">Participants</label>
-        <div class="col-md-6 ls2-body-text">
-          <a href="{% url 'add_participants' study.uuid %}">Add Participants</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {% include "study_management/participant_table.html" with study=study data_export_enabled=data_export_enabled data_download_default=data_download_default only %}
-
   {% if study.participantaccountgenerator_set.count > 0 %}
   {% include "study_management/participant_account_generators_table.html" with study=study only %}
   {% endif %}
+
+  {% if study.tokenbasedparticipantaccountgenerator_set.count > 0 %}
+  {% include "study_management/token_based_participant_account_generators_table.html" with study=study only %}
+  {% endif %}
+
+  <div class="row ls2-subcontainer">
+      <div class="col-md-8 center-block">
+        <div class="row">
+          <label for="id_username" class="col-md-2 ls2-body-text">Participants</label>
+          <div class="col-md-6 ls2-body-text">
+            <a href="{% url 'add_participants' study.uuid %}">Add Participant Manually</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  {% include "study_management/participant_table.html" with study=study data_export_enabled=data_export_enabled data_download_default=data_download_default only %}
 
 {% endblock %}

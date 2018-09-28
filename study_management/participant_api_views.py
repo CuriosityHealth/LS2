@@ -11,7 +11,8 @@ from rest_framework.permissions import IsAuthenticated
 
 from .rest_auth import (
     ParticipantTokenAuthentication,
-    ParticipantAccountGeneratorAuthentication
+    ParticipantAccountGeneratorAuthentication,
+    TokenBasedParticipantAccountGeneratorAuthentication
 )
 from .rest_permissions import ParticipantAccountGeneratorPermission
 from .models import Datapoint, Participant, ParticipantAccountGenerator
@@ -176,6 +177,27 @@ class ParticipantAccountGeneratorView(APIView):
 
         participant_account_generator = request.auth
         username_password = participant_account_generator.generate_participant()
+        if username_password == None:
+            return Response({"error": "An error occurred. Please try again."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        content = {'username': username_password[0], 'password': username_password[1]}
+        return Response(content, status=status.HTTP_201_CREATED)
+
+#This authenticates users as AnonymousUser, but puts the generator in the auth field
+class TokenBasedParticipantAccountGeneratorView(APIView):
+
+    authentication_classes = (TokenBasedParticipantAccountGeneratorAuthentication,)
+    parser_classes = (parsers.JSONParser,)
+    renderer_classes = (renderers.JSONRenderer,)
+
+    def post(self, request, format=None):
+
+        participant_account_token = request.auth
+        participant_account_generator = participant_account_token.account_generator
+
+        ##generate participant from token
+        username_password = participant_account_generator.generate_participant(participant_account_token)
+
         if username_password == None:
             return Response({"error": "An error occurred. Please try again."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

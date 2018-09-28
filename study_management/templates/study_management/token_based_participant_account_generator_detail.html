@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <div class="row ls2-subheader">
+    <p class="ls2-subheader-text">Generate Participant Tokens For {{ study.name }}</p>
+  </div>
+
+  <div class="row ls2-subcontainer">
+    <div class="col-md-8 center-block">
+      <table class="table table-borderd ls2-table" style="width:100%">
+        <tr>
+          <th>Generator ID</th>
+          <th>Token Format</th>
+          <th>Token Size</th>
+        </tr>
+  
+        <tr class="ls2-cell">
+            <td>{{ generator.uuid }}</td>
+            <td>{{ generator.get_token_format_display }}</td>
+            <td>{{ generator.token_size }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="row ls2-subcontainer">
+      <div class="col-md-8 center-block">
+        <form method="post">
+          {% csrf_token %}
+        <div class="form-group row">
+          <div class="col-sm-10">
+            <input type="submit" class="btn ch-button" value="Create New Token" />
+            <input type="hidden" name="next" value="{{ next }}" />
+          </div>
+          <p class="btn ch-button"><a href="{% url 'study_detail' study.uuid %}">Back To Study</a></p>
+        </div>
+        </form>
+      </div>
+    </div>
+
+    {% if new_token %}
+
+      <div class="row ls2-subcontainer">
+        <div class="col-md-8 center-block">
+          <table class="table table-borderd ls2-table" style="width:100%">
+            <tr class="ls2-cell">
+                <th>New Token</th>
+                <td>{{ new_token.token }}</td>
+            </tr>
+            <tr class="ls2-cell">
+                <th>Username</th>
+                <td>{{ new_token.username }}</td>
+            </tr>
+            {% if new_token.url %}
+            <tr class="ls2-cell">
+                <th>Deep Link</th>
+                <td>{{ new_token.url }}</td>
+            </tr>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+
+    {% endif %}
+
+  <div class="row ls2-subcontainer">
+    <div class="col-md-8 center-block">
+      <table class="table table-borderd ls2-table" style="width:100%">
+        <tr>
+          <th>Token</th>
+          <th>Username</th>
+          <th>Created Date</th>
+          <th>Expiration Date</th>
+          <th>Used</th>
+        </tr>
+  
+        {% for token in generator.participantaccounttoken_set.all %}
+          <tr class="ls2-cell">
+            <td>{{ token.redacted_token }}</td>
+            <td>{{ token.username }}</td>
+            <td>{{ token.created_date_time }}</td>
+            <td>{{ token.expiration_date_time }}</td>
+            <td>{{ token.used }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+
+
+
+{% endblock %}

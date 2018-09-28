@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.shortcuts import render
-from .models import Researcher, Participant, Study
+from .models import Researcher, Participant, Study, TokenBasedParticipantAccountGenerator
 # from django.contrib.auth.decorators import login_required
 from .decorators import researcher_login_required, researcher_changed_password
 from django.contrib.auth.views import LoginView, PasswordResetView
@@ -114,3 +114,31 @@ def add_participants(request, study_uuid):
     else:
         context['form'] = ParticipantCreationForm()
         return render(request, 'study_management/add_participants.html', context=context, status=200)
+
+@researcher_login_required
+@researcher_changed_password
+def token_based_participant_account_generator(request, study_uuid, generator_uuid):
+
+    researcher = request.user.researcher
+
+    ##This ensures that researcher has access to this study
+    ##Test this for both non-existent studies as well as studies
+    ##This researcher does not have access to
+    try:
+        study = researcher.studies.get(uuid=study_uuid)
+    except Study.DoesNotExist:
+        return render(request, '404.html')
+
+    try:
+        generator = study.tokenbasedparticipantaccountgenerator_set.get(uuid=generator_uuid)
+    except TokenBasedParticipantAccountGenerator.DoesNotExist:
+        return render(request, '404.html')
+
+    context = {'study': study, 'generator': generator}
+
+    if request.method == "POST":
+        new_token = generator.generate_token()
+        context['new_token'] = new_token
+        return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=201)
+    else:
+        return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=200)

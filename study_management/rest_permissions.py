@@ -19,3 +19,15 @@ class ParticipantAccountGeneratorPermission(permissions.BasePermission):
         logger.debug('checking permissions')
         logger.debug(generator)
         return generator.can_generate_participant_account()
+
+class TokenBasedParticipantAccountGeneratorPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+
+        if type(request.user) != ParticipantAccountGenerator:
+            return False
+
+        token = request.auth
+        logger.debug('checking permissions')
+        logger.debug(generator)
+        return generator.can_generate_participant_account()

@@ -172,3 +172,7 @@ class DatapointSerializer(serializers.ModelSerializer):
 class ParticipantAccountGeneratorAuthenticationSerializer(serializers.Serializer):
     generator_id = serializers.UUIDField()
     generator_password = serializers.CharField()
+
+class TokenBasedParticipantAccountGeneratorAuthenticationSerializer(serializers.Serializer):
+    generator_id = serializers.UUIDField()
+    token = serializers.CharField()

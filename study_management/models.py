@@ -7,6 +7,9 @@ from .settings import PARTICIPANT_ACCOUNT_GENERATOR_PASSWORD_VALIDATORS, PASSWOR
 from django.contrib.auth.hashers import (
     check_password, is_password_usable, make_password,
 )
+
+from django.template import Context, Template
+
 import string
 import secrets
 
@@ -353,3 +356,212 @@ class ParticipantAccountGenerationTimeout(models.Model):
     def disabled(self):
         now = timezone.now()
         return now <= self.disable_until
+
+
+class TokenBasedParticipantAccountGenerator(models.Model):
+    created_date = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+
+    study = models.ForeignKey(Study, on_delete=models.PROTECT)
+
+    username_prefix = models.CharField(default='', blank=True, max_length=16)
+    username_suffix = models.CharField(default='', blank=True, max_length=16)
+    username_random_character_length = models.PositiveSmallIntegerField(default=16)
+    ## random character alphabet is hex
+
+    password_min_length = models.PositiveSmallIntegerField(default=16)
+    password_max_length = models.PositiveSmallIntegerField(default=16)
+
+
+    ##Token generation defaults to 32-byte (256-bit) base64 encoded string
+    #token format
+    ## numerical - typical use case would  be 6-8 digit codes
+    ## alphanumeric (uppercase letters only, typical use case would be 6-8 digit alphanum codes)
+    ## base64 - typical use case would be 
+    NUMERIC = 'NM'
+    ALPHANUMERIC = 'AN'
+    BASE64 = '64'
+    TOKEN_FORMAT_CHOICES = (
+        (NUMERIC, 'Numeric'),
+        (ALPHANUMERIC, 'Alphanumeric'),
+        (BASE64, 'Base64'),
+    )
+
+    token_format = models.CharField(
+        max_length=2,
+        choices=TOKEN_FORMAT_CHOICES,
+        default=BASE64,
+    )
+
+    #token length
+    token_size = models.PositiveSmallIntegerField(default=32)
+    #token lifetime
+    token_lifetime = models.DurationField()
+
+    #optional url template
+    url_template = models.TextField(blank=True)
+
+    def __str__(self):
+        return str(self.uuid)
+
+    
+
+    ## Throttling
+    ## note there is both system wide throttling as well as
+    ## generator specific throttling
+    ## for system-wide, we would like to prevent a user from brute forcing
+    ## uuid or password
+
+    def can_generate_participant_account(self):
+        return self.is_active
+
+    def generate_username(self):
+        alphabet = string.digits + 'ABCDEF'
+        size = self.username_random_character_length
+        random_chars = ''.join(secrets.choice(alphabet) for _ in range(size))
+        return self.username_prefix + random_chars + self.username_suffix
+
+    def generate_password(self):
+        alphabet = string.digits + string.ascii_letters
+        size_difference = self.password_max_length - self.password_min_length
+        size = secrets.randbelow(size_difference + 1) + self.password_min_length
+        return ''.join(secrets.choice(alphabet) for _ in range(size))
+
+    
+
+    def generateTokenString(self):
+
+        size = self.token_size
+
+        ##size^8
+        if self.token_format == self.BASE64:
+            return secrets.token_urlsafe(size)
+
+        ##size^10
+        if self.token_format == self.NUMERIC:
+            alphabet = string.digits
+            return ''.join(secrets.choice(alphabet) for _ in range(size))
+
+        ##size^36
+        if self.token_format == self.ALPHANUMERIC:
+            alphabet = string.digits + sting.ascii_uppercase
+            return ''.join(secrets.choice(alphabet) for _ in range(size))
+
+    def generate_token(self):
+
+        # logger.debug(username)
+        # logger.debug(password)
+
+        #check for existing username
+        ##default odds of collision are 1/(16^16) * n
+
+        ## check against all users and all tokens
+        username = None
+        while(True):
+            username = self.generate_username()
+            try:
+                user = User.objects.get(username=username)
+                continue
+            except User.DoesNotExist:
+                try:
+                    token = ParticipantAccountToken.objects.get(username=username)
+                    continue
+                except:
+                    break 
+        
+        expiration_date_time = timezone.now() + self.token_lifetime
+        token_string = self.generateTokenString()
+
+        token = ParticipantAccountToken.objects.create(
+            token=token_string,
+            username=username,
+            account_generator=self,
+            expiration_date_time=expiration_date_time
+        )
+
+        return token
+
+    def generate_participant(self, token):
+
+        username = token.username
+        password = self.generate_password()
+
+        # logger.debug(username)
+        # logger.debug(password)
+
+        try:
+            user = User(username=username)
+            password_validation.validate_password(password, user=user)
+            user.set_password(password)
+            user.full_clean()
+            user.save()
+        except ValidationError as e:
+            logger.error(e)
+            return None
+
+        # logger.debug(user)
+
+        try:
+            participant = Participant(label=username, user=user, study=self.study)
+        except Study.DoesNotExist:
+            logger.error(e)
+            user.delete()
+            return None
+
+        try:
+            participant.full_clean()
+            participant.save()
+        except ValidationError as e:
+            logger.error(e)
+            user.delete()
+            return None
+
+        self.number_of_participants_created = F('number_of_participants_created') + 1
+        self.save()
+
+        # logger.debug(participant)
+        return (username, password)
+
+
+class ParticipantAccountToken(models.Model):
+
+    token = models.CharField(max_length=128)
+    username = models.CharField(max_length=50)
+    account_generator = models.ForeignKey(TokenBasedParticipantAccountGenerator, on_delete=models.PROTECT)
+    created_date_time = models.DateTimeField(auto_now_add=True)
+    expiration_date_time = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.username
+
+    def redacted_token(self):
+        if len(self.token) <= 4:
+            return "****"
+
+        if len(self.token) <= 8:
+            return self.token[0] + "****" + self.token[-1]
+
+        else:
+            return self.token[:2] + "****" + self.token[-2:]
+        
+    def expired(self):
+        return expiration_date_time > timezone.now()
+
+    ## can only generate account if not yet used and has not expired
+    def can_generate_participant_account(self):
+        return not (self.used or self.expired())
+
+    def url(self):
+        generator = self.account_generator
+        if len(generator.url_template) == 0:
+            return None
+        else:
+            template_string = generator.url_template
+            context = { 'token': self.token, 'generator_uuid': generator.uuid }
+            tpl = Template(template_string)
+            rendered = tpl.render(Context(context))
+            logger.debug(rendered)
+            print(rendered)
+            return rendered
