@@ -66,6 +66,7 @@ if settings.STUDY_MANAGEMENT_PORTAL_ENABLE:
     researcher_rest_patters = [
         path('management/studies/<uuid:study_uuid>/study_data', researcher_rest_views.DatapointListView.as_view(), name='all_study_data'),
         path('management/studies/<uuid:study_uuid>/study_data/<uuid:participant_uuid>', researcher_rest_views.DatapointListView.as_view(), name='study_data_for_participant'),
+        path('management/studies/<uuid:study_uuid>/participant_mapping', researcher_rest_views.ParticipantMappingListView.as_view(), name='participant_mapping'),
     ]
 
     researcher_rest_patters = format_suffix_patterns(researcher_rest_patters)

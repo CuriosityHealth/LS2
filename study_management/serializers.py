@@ -169,6 +169,16 @@ class DatapointSerializer(serializers.ModelSerializer):
             'body': json.loads(obj.body)
         }
 
+class ParticipantMappingSerializer(serializers.Serializer):
+    participant_id = serializers.UUIDField()
+    username = serializers.CharField()
+
+    def to_representation(self, obj):
+        return {
+            'participant_id': obj.uuid,
+            'username': obj.user.username
+        }
+
 class ParticipantAccountGeneratorAuthenticationSerializer(serializers.Serializer):
     generator_id = serializers.UUIDField()
     generator_password = serializers.CharField()

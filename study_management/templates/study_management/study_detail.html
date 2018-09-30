@@ -18,7 +18,7 @@
   <div class="row ls2-subcontainer">
     <div class="col-md-8 center-block">
       <div class="row">
-        <label for="id_username" class="col-md-2 ls2-body-text">Participant Data</label>
+        <label for="id_username" class="col-md-4 ls2-body-text">Participant Data</label>
         <div class="col-md-6 ls2-body-text">
           {% if data_download_default %}
           <a href="{% url 'all_study_data' study.uuid %}.json" download>Export Study Data</a>
@@ -27,6 +27,16 @@
           {% endif %}
         </div>
       </div>
+      <div class="row">
+          <label for="id_username" class="col-md-4 ls2-body-text">Participant Mapping</label>
+          <div class="col-md-6 ls2-body-text">
+            {% if data_download_default %}
+            <a href="{% url 'participant_mapping' study.uuid %}.json" download>Export Participant Mapping</a>
+            {% else %}
+            <a href="{% url 'participant_mapping' study.uuid %}.json">View Participant Mapping</a>
+            {% endif %}
+          </div>
+        </div>
     </div>
   </div>
   {% endif %}
