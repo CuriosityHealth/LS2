@@ -86,7 +86,8 @@ if settings.PARTICIPANT_API_ENABLE:
     # ParticipantAccountGeneratorAuthentication
     if getattr(settings, 'PARTICIPANT_ACCOUNT_GENERATION_ENABLED', False):
         participant_account_generation_views = [
-            path('dsu/account/generate', participant_api_views.ParticipantAccountGeneratorView.as_view(), name='participant_account_generation')
+            path('dsu/account/generate', participant_api_views.ParticipantAccountGeneratorView.as_view(), name='participant_account_generation'),
+            path('dsu/account/generate/token', participant_api_views.TokenBasedParticipantAccountGeneratorView.as_view(), name='participant_account_generation')
         ]
     else:
         participant_account_generation_views = []

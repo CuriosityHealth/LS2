@@ -14,7 +14,7 @@ from .rest_auth import (
     ParticipantAccountGeneratorAuthentication,
     TokenBasedParticipantAccountGeneratorAuthentication
 )
-from .rest_permissions import ParticipantAccountGeneratorPermission
+from .rest_permissions import ParticipantAccountGeneratorPermission, TokenBasedParticipantAccountGeneratorPermission
 from .models import Datapoint, Participant, ParticipantAccountGenerator
 from .serializers import DatapointSerializer
 
@@ -183,17 +183,29 @@ class ParticipantAccountGeneratorView(APIView):
         content = {'username': username_password[0], 'password': username_password[1]}
         return Response(content, status=status.HTTP_201_CREATED)
 
-#This authenticates users as AnonymousUser, but puts the generator in the auth field
+#This authenticates a token, then generates an account
 class TokenBasedParticipantAccountGeneratorView(APIView):
 
     authentication_classes = (TokenBasedParticipantAccountGeneratorAuthentication,)
     parser_classes = (parsers.JSONParser,)
     renderer_classes = (renderers.JSONRenderer,)
+    permission_classes = (TokenBasedParticipantAccountGeneratorPermission,)
 
     def post(self, request, format=None):
 
-        participant_account_token = request.auth
+        participant_account_token = request.user
         participant_account_generator = participant_account_token.account_generator
+
+        hasBeenUsed = None
+        with transaction.atomic():
+            participant_account_token.refresh_from_db()
+            hasBeenUsed = participant_account_token.used
+            if hasBeenUsed == False:
+                participant_account_token.used = True
+                participant_account_token.save()
+
+        if hasBeenUsed:
+            return Response({"error": "The token is invalid. Please try again with a new token."}, status=status.HTTP_400_BAD_REQUEST)
 
         ##generate participant from token
         username_password = participant_account_generator.generate_participant(participant_account_token)

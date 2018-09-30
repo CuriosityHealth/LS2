@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from .models import ParticipantAccountGenerator
+from .models import ParticipantAccountGenerator, ParticipantAccountToken
 
 import logging
 
@@ -24,10 +24,7 @@ class TokenBasedParticipantAccountGeneratorPermission(permissions.BasePermission
 
     def has_permission(self, request, view):
 
-        if type(request.user) != ParticipantAccountGenerator:
-            return False
-
-        token = request.auth
         logger.debug('checking permissions')
-        logger.debug(generator)
-        return generator.can_generate_participant_account()
+        logger.debug(request.user)
+
+        return type(request.user) == ParticipantAccountToken

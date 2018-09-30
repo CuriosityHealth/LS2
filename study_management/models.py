@@ -301,8 +301,8 @@ class ParticipantAccountGenerator(models.Model):
             user.delete()
             return None
 
-        self.number_of_participants_created = F('number_of_participants_created') + 1
-        self.save()
+        # self.number_of_participants_created = F('number_of_participants_created') + 1
+        # self.save()
 
         # logger.debug(participant)
         return (username, password)
@@ -374,7 +374,7 @@ class TokenBasedParticipantAccountGenerator(models.Model):
     password_max_length = models.PositiveSmallIntegerField(default=16)
 
 
-    ##Token generation defaults to 32-byte (256-bit) base64 encoded string
+    ##Token generation defaults to 64-byte (512-bit) base64 encoded string
     #token format
     ## numerical - typical use case would  be 6-8 digit codes
     ## alphanumeric (uppercase letters only, typical use case would be 6-8 digit alphanum codes)
@@ -395,7 +395,7 @@ class TokenBasedParticipantAccountGenerator(models.Model):
     )
 
     #token length
-    token_size = models.PositiveSmallIntegerField(default=32)
+    token_size = models.PositiveSmallIntegerField(default=64)
     #token lifetime
     token_lifetime = models.DurationField()
 
@@ -428,8 +428,6 @@ class TokenBasedParticipantAccountGenerator(models.Model):
         size = secrets.randbelow(size_difference + 1) + self.password_min_length
         return ''.join(secrets.choice(alphabet) for _ in range(size))
 
-    
-
     def generateTokenString(self):
 
         size = self.token_size
@@ -445,7 +443,7 @@ class TokenBasedParticipantAccountGenerator(models.Model):
 
         ##size^36
         if self.token_format == self.ALPHANUMERIC:
-            alphabet = string.digits + sting.ascii_uppercase
+            alphabet = string.digits + string.ascii_uppercase
             return ''.join(secrets.choice(alphabet) for _ in range(size))
 
     def generate_token(self):
@@ -547,11 +545,14 @@ class ParticipantAccountToken(models.Model):
             return self.token[:2] + "****" + self.token[-2:]
         
     def expired(self):
-        return expiration_date_time > timezone.now()
+        return self.expiration_date_time < timezone.now()
 
     ## can only generate account if not yet used and has not expired
     def can_generate_participant_account(self):
-        return not (self.used or self.expired())
+        
+        can_generate_account = (self.used == False and self.expired() == False)
+        logger.debug(can_generate_account)
+        return can_generate_account
 
     def url(self):
         generator = self.account_generator

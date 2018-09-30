@@ -7,7 +7,8 @@ from .utils import is_researcher, is_participant
 from .models import (
     ParticipantAccountGenerator,
     ParticipantAccountGenerationRequestEvent,
-    ParticipantAccountGenerationTimeout
+    ParticipantAccountGenerationTimeout,
+    ParticipantAccountToken
 )
 from .serializers import (
     TokenBasedParticipantAccountGeneratorAuthenticationSerializer,
@@ -308,12 +309,12 @@ class TokenBasedParticipantAccountGeneratorAuthentication(BaseAuthentication):
             participantAccountToken = ParticipantAccountToken.objects.get(token=token, account_generator__uuid=generator_id)
             logger.debug(participantAccountToken)
 
-            if participantAccountToken.can_generate_participant_account():
+            if participantAccountToken.can_generate_participant_account() == False:
                 logger.warn(f'Invalid token')
                 return None
 
             else:
-                return (token, None)
+                return (participantAccountToken, None)
 
         except ParticipantAccountToken.DoesNotExist:
             logger.warn(f'Invalid token')
