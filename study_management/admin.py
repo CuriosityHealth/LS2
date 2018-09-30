@@ -12,6 +12,7 @@ from .models import (
     ParticipantAccountGenerationRequestEvent,
     ParticipantAccountGenerationTimeout,
     TokenBasedParticipantAccountGenerator,
+    ParticipantAccountToken,
 )
 # Register your models here.
 from django.utils.safestring import mark_safe
@@ -232,5 +233,12 @@ class TokenBasedParticipantAccountGeneratorAdmin(admin.ModelAdmin):
     # readonly_fields = ()
     pass
 
+class ParticipantAccountTokenAdmin(admin.ModelAdmin):
+    # readonly_fields = ()
+    list_display = ('__str__', 'username', 'account_generator', 'created_date_time', 'expiration_date_time', 'used', 'disabled')
+    list_filter = ['used', 'disabled', 'account_generator']
+    pass
+
 if app_settings.PARTICIPANT_ACCOUNT_GENERATION_ENABLED:
     admin.site.register(TokenBasedParticipantAccountGenerator, TokenBasedParticipantAccountGeneratorAdmin)
+    admin.site.register(ParticipantAccountToken, ParticipantAccountTokenAdmin)

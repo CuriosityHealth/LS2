@@ -301,8 +301,8 @@ class ParticipantAccountGenerator(models.Model):
             user.delete()
             return None
 
-        # self.number_of_participants_created = F('number_of_participants_created') + 1
-        # self.save()
+        self.number_of_participants_created = F('number_of_participants_created') + 1
+        self.save()
 
         # logger.debug(participant)
         return (username, password)
@@ -413,7 +413,10 @@ class TokenBasedParticipantAccountGenerator(models.Model):
     ## for system-wide, we would like to prevent a user from brute forcing
     ## uuid or password
 
-    def can_generate_participant_account(self):
+    def can_generate_token(self):
+        return self.is_active
+
+    def can_redeem_token(self):
         return self.is_active
 
     def generate_username(self):
@@ -448,6 +451,8 @@ class TokenBasedParticipantAccountGenerator(models.Model):
 
     def generate_token(self):
 
+        MAX_LOOP_ITERATIONS = 10
+
         # logger.debug(username)
         # logger.debug(password)
 
@@ -456,7 +461,13 @@ class TokenBasedParticipantAccountGenerator(models.Model):
 
         ## check against all users and all tokens
         username = None
+        loop_counter = 0
         while(True):
+
+            loop_counter = loop_counter + 1
+            if loop_counter > MAX_LOOP_ITERATIONS:
+                return None
+
             username = self.generate_username()
             try:
                 user = User.objects.get(username=username)
@@ -465,11 +476,27 @@ class TokenBasedParticipantAccountGenerator(models.Model):
                 try:
                     token = ParticipantAccountToken.objects.get(username=username)
                     continue
-                except:
+                except ParticipantAccountToken.DoesNotExist:
                     break 
         
         expiration_date_time = timezone.now() + self.token_lifetime
-        token_string = self.generateTokenString()
+
+        ##check for valid token_string collision
+        ##Note that for sufficiently small alphabet + length and large token_lifetime + population,
+        ##this could actually spend a lot of time in this loop. We would want to prevent this, so maybe add
+        ##a max number of iterations in this loop?
+        token_string = None
+        loop_counter = 0
+        while(True):
+
+            loop_counter = loop_counter + 1
+            if loop_counter > MAX_LOOP_ITERATIONS:
+                return None
+
+            token_string = self.generateTokenString()
+            token = ParticipantAccountToken.getValidToken(token=token_string, generator_id=self.uuid)
+            if token == None:
+                break
 
         token = ParticipantAccountToken.objects.create(
             token=token_string,
@@ -515,24 +542,23 @@ class TokenBasedParticipantAccountGenerator(models.Model):
             user.delete()
             return None
 
-        self.number_of_participants_created = F('number_of_participants_created') + 1
-        self.save()
-
-        # logger.debug(participant)
         return (username, password)
 
 
 class ParticipantAccountToken(models.Model):
 
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     token = models.CharField(max_length=128)
     username = models.CharField(max_length=50)
     account_generator = models.ForeignKey(TokenBasedParticipantAccountGenerator, on_delete=models.PROTECT)
     created_date_time = models.DateTimeField(auto_now_add=True)
     expiration_date_time = models.DateTimeField()
     used = models.BooleanField(default=False)
+    used_date_time = models.DateTimeField(blank=True, null=True)
+    disabled = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.username
+        return str(self.uuid)
 
     def redacted_token(self):
         if len(self.token) <= 4:
@@ -547,13 +573,6 @@ class ParticipantAccountToken(models.Model):
     def expired(self):
         return self.expiration_date_time < timezone.now()
 
-    ## can only generate account if not yet used and has not expired
-    def can_generate_participant_account(self):
-        
-        can_generate_account = (self.used == False and self.expired() == False)
-        logger.debug(can_generate_account)
-        return can_generate_account
-
     def url(self):
         generator = self.account_generator
         if len(generator.url_template) == 0:
@@ -566,3 +585,38 @@ class ParticipantAccountToken(models.Model):
             logger.debug(rendered)
             print(rendered)
             return rendered
+
+    @staticmethod
+    def getValidToken(*, token, generator_id):
+
+        try:
+            participantAccountToken = ParticipantAccountToken.objects.get(
+                token=token, 
+                account_generator__uuid=generator_id,
+                used=False,
+                expiration_date_time__gt=timezone.now(),
+                disabled=False
+            )
+
+            logger.debug(participantAccountToken)
+            return participantAccountToken
+
+        except ParticipantAccountToken.DoesNotExist:
+            logger.warn(f'Invalid token')
+            return None
+
+    @staticmethod
+    def getTokenByUUID(*, token_id, generator_id):
+
+        try:
+            participantAccountToken = ParticipantAccountToken.objects.get(
+                uuid=token_id, 
+                account_generator__uuid=generator_id
+            )
+
+            logger.debug(participantAccountToken)
+            return participantAccountToken
+
+        except ParticipantAccountToken.DoesNotExist:
+            logger.warn(f'Invalid token')
+            return None

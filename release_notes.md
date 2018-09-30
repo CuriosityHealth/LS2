@@ -1,3 +1,6 @@
+* 1.8.0
+    * Added token-based participant account generation
+    * Fixed some issues with development logging
 * 1.7.3
     * Fixed issues where crashes would sometimes occur in Admin portal during password change & logout
     * Updated default values for participant account generation throttling

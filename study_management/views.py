@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.shortcuts import render
-from .models import Researcher, Participant, Study, TokenBasedParticipantAccountGenerator
+from django.shortcuts import render, redirect
+from .models import Researcher, Participant, Study, TokenBasedParticipantAccountGenerator, ParticipantAccountToken
 # from django.contrib.auth.decorators import login_required
 from .decorators import researcher_login_required, researcher_changed_password
 from django.contrib.auth.views import LoginView, PasswordResetView
@@ -135,10 +135,34 @@ def token_based_participant_account_generator(request, study_uuid, generator_uui
         return render(request, '404.html')
 
     context = {'study': study, 'generator': generator}
+    token_id = request.GET.get('token_id', None)
+    logger.debug(token_id)
+    if token_id != None:
+        new_token = ParticipantAccountToken.getTokenByUUID(
+            token_id=token_id,
+            generator_id=generator_uuid
+        )
+        if new_token != None:
+            logger.debug(new_token)
+            context['new_token'] = new_token
 
     if request.method == "POST":
+
+        if generator.can_generate_token() == False:
+            messages.error(request, 'The token generator is disabled. Please contact the administrator.')
+            return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=403)
+
         new_token = generator.generate_token()
-        context['new_token'] = new_token
-        return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=201)
+        if new_token != None:
+
+            logger.debug(request.path)
+            redirect_path = f'{request.path}?token_id={new_token}'
+            logger.debug(redirect_path)
+            return redirect(redirect_path)
+         
+        else:
+            messages.error(request, 'Could not generate a unique token. Please try again later.')
+            return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=409)
+        
     else:
         return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=200)

@@ -305,19 +305,8 @@ class TokenBasedParticipantAccountGeneratorAuthentication(BaseAuthentication):
             logger.warn(f'Account generation is throttled')
             return None
 
-        try:
-            participantAccountToken = ParticipantAccountToken.objects.get(token=token, account_generator__uuid=generator_id)
-            logger.debug(participantAccountToken)
-
-            if participantAccountToken.can_generate_participant_account() == False:
-                logger.warn(f'Invalid token')
-                return None
-
-            else:
-                return (participantAccountToken, None)
-
-        except ParticipantAccountToken.DoesNotExist:
-            logger.warn(f'Invalid token')
-            return None
+        participantAccountToken = ParticipantAccountToken.getValidToken(token=token, generator_id=generator_id)
+        if participantAccountToken != None:
+            return (participantAccountToken, None)
 
         return None

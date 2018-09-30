@@ -45,12 +45,28 @@
         <div class="col-md-8 center-block">
           <table class="table table-borderd ls2-table" style="width:100%">
             <tr class="ls2-cell">
-                <th>New Token</th>
+                <th>Token</th>
                 <td>{{ new_token.token }}</td>
             </tr>
             <tr class="ls2-cell">
                 <th>Username</th>
                 <td>{{ new_token.username }}</td>
+            </tr>
+            <tr class="ls2-cell">
+                <th>Created</th>
+                <td>{{ new_token.created_date_time }}</td>
+            </tr>
+            <tr class="ls2-cell">
+                <th>Expiration</th>
+                <td>{{ new_token.expiration_date_time }}</td>
+            </tr>
+            <tr class="ls2-cell">
+                <th>Used</th>
+                {% if new_token.used_date_time %}
+                <td>{{ new_token.used_date_time }}</td>
+                {% else %}
+                <td></td>
+                {% endif %}
             </tr>
             {% if new_token.url %}
             <tr class="ls2-cell">
@@ -70,18 +86,22 @@
         <tr>
           <th>Token</th>
           <th>Username</th>
-          <th>Created Date</th>
-          <th>Expiration Date</th>
+          <th>Created</th>
+          <th>Expiration</th>
           <th>Used</th>
         </tr>
   
         {% for token in generator.participantaccounttoken_set.all %}
           <tr class="ls2-cell">
-            <td>{{ token.redacted_token }}</td>
+            <td><a href="{% url 'token_based_participant_account_generator' study_uuid=study.uuid generator_uuid=generator.uuid %}?token_id={{token.uuid}}">{{token.redacted_token}}</a></td>
             <td>{{ token.username }}</td>
             <td>{{ token.created_date_time }}</td>
             <td>{{ token.expiration_date_time }}</td>
-            <td>{{ token.used }}</td>
+            {% if token.used_date_time %}
+            <td>{{ token.used_date_time }}</td>
+            {% else %}
+            <td></td>
+            {% endif %}
           </tr>
         {% endfor %}
       </table>

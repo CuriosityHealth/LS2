@@ -245,9 +245,17 @@ LOGGING = {
         },
     },
     'handlers': {
-        'default': {
+        'debug': {
             'level':'DEBUG',
             'filters': ['require_debug_true'],
+            'class':'study_management.logging.TimedCompressedRotatingFileHandler',
+            'when': 'W6',
+            'filename': '/logs/debug.log',
+            'backupCount': 13,
+            'formatter':'standard',
+        },
+        'default': {
+            'level':'WARNING',
             'class':'study_management.logging.TimedCompressedRotatingFileHandler',
             'when': 'W6',
             'filename': '/logs/default.log',
@@ -294,13 +302,13 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['default'],
+            'handlers': ['default', 'debug'],
             'level': 'DEBUG',
             'propagate': True
         },
         'study_management': {
-            'handlers': ['django'],
-            'level': 'WARN',
+            'handlers': [],
+            'level': 'DEBUG',
             'propagate': True
         },
         'django': {

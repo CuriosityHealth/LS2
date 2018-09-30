@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import render
 from cryptography.fernet import InvalidToken
+from django.utils import timezone
 
 from rest_framework.permissions import IsAuthenticated
 
@@ -196,12 +197,17 @@ class TokenBasedParticipantAccountGeneratorView(APIView):
         participant_account_token = request.user
         participant_account_generator = participant_account_token.account_generator
 
+        if participant_account_generator.can_redeem_token() == False:
+            return Response({"error": "The token generator is disabled. Please contact the administrator."}, status=status.HTTP_403_FORBIDDEN)
+
+
         hasBeenUsed = None
         with transaction.atomic():
             participant_account_token.refresh_from_db()
             hasBeenUsed = participant_account_token.used
             if hasBeenUsed == False:
                 participant_account_token.used = True
+                participant_account_token.used_date_time = timezone.now()
                 participant_account_token.save()
 
         if hasBeenUsed:
