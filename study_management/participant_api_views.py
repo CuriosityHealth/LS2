@@ -1,5 +1,4 @@
 from rest_framework import parsers, renderers
-# from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import status
 from rest_framework.response import Response
@@ -13,7 +12,8 @@ from rest_framework.permissions import IsAuthenticated
 from .rest_auth import (
     ParticipantTokenAuthentication,
     ParticipantAccountGeneratorAuthentication,
-    TokenBasedParticipantAccountGeneratorAuthentication
+    TokenBasedParticipantAccountGeneratorAuthentication,
+    OldParticipantTokenAuthentication,
 )
 from .rest_permissions import ParticipantAccountGeneratorPermission, TokenBasedParticipantAccountGeneratorPermission
 from .models import Datapoint, Participant, ParticipantAccountGenerator, ParticipantAuthToken
@@ -104,7 +104,7 @@ class ObtainAuthToken(APIView):
 
 class ParticipantLogOutView(APIView):
 
-    authentication_classes = (ParticipantTokenAuthentication,)
+    authentication_classes = (ParticipantTokenAuthentication, OldParticipantTokenAuthentication,)
     parser_classes = (parsers.JSONParser,)
     renderer_classes = (renderers.JSONRenderer,)
     permission_classes = (IsAuthenticated,)
@@ -128,7 +128,7 @@ class ParticipantLogOutView(APIView):
 
 class ParticipantTokenCheck(APIView):
 
-    authentication_classes = (ParticipantTokenAuthentication,)
+    authentication_classes = (ParticipantTokenAuthentication, OldParticipantTokenAuthentication)
     parser_classes = (parsers.JSONParser,)
     renderer_classes = (renderers.JSONRenderer,)
     permission_classes = (IsAuthenticated,)
@@ -138,7 +138,7 @@ class ParticipantTokenCheck(APIView):
 
 class DatapointCreateView(APIView):
 
-    authentication_classes = (ParticipantTokenAuthentication,)
+    authentication_classes = (ParticipantTokenAuthentication, OldParticipantTokenAuthentication)
     parser_classes = (parsers.JSONParser,)
     renderer_classes = (renderers.JSONRenderer,)
     permission_classes = (IsAuthenticated,)

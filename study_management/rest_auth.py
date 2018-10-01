@@ -2,6 +2,8 @@ from rest_framework.authentication import (
     SessionAuthentication, TokenAuthentication, BaseAuthentication
 )
 
+from rest_framework.exceptions import AuthenticationFailed
+
 from django.contrib.auth.models import AnonymousUser
 from .utils import is_researcher, is_participant
 from .models import (
@@ -48,17 +50,44 @@ class ParticipantTokenAuthentication(TokenAuthentication):
 
     def authenticate(self, request):
 
-        auth_tuple = super().authenticate(request)
-        if auth_tuple != None and is_participant(auth_tuple[0]):
-            user = auth_tuple[0]
-            token = auth_tuple[1]
-            token.last_used = timezone.now()
-            token.save()
-            logging.debug(f'Authenticating user {user}')
-            return auth_tuple
+        logging.debug(f'ParticipantTokenAuthentication')
 
-        else:
+        try:
+            auth_tuple = super().authenticate(request)
+            if auth_tuple != None and is_participant(auth_tuple[0]):
+                user = auth_tuple[0]
+                token = auth_tuple[1]
+                token.last_used = timezone.now()
+                token.save()
+                logging.debug(f'Authenticating user {user}')
+                return auth_tuple
+
+            else:
+                logging.debug(f'Could not authenticate with ParticipantTokenAuthentication')
+                return None
+        except AuthenticationFailed:
+            logging.debug(f'OldParticipantTokenAuthentication AuthenticationFailed exception')
             return None
+
+        
+
+##This is here for backwards compatibility
+class OldParticipantTokenAuthentication(TokenAuthentication):
+
+    def authenticate(self, request):
+
+        logging.debug(f'OldParticipantTokenAuthentication')
+
+        user_tuple = super().authenticate(request)
+        if user_tuple != None and is_participant(user_tuple[0]):
+            user = user_tuple[0]
+            logging.debug(f'Authenticating user {user}')
+            return user_tuple
+        else:
+            logging.debug(f'Could not authenticate with OldParticipantTokenAuthentication')
+            return None
+        
+
 
 class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
