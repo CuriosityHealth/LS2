@@ -352,6 +352,7 @@ DJANGO_EASY_AUDIT_ADMIN_SHOW_REQUEST_EVENTS = False
 DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = [
     'study_management.PasswordChangeEvent',
     'study_management.Datapoint',
+    'study_management.ParticipantAuthToken',
     'authtoken.Token',
     'db.TestModel',
 ]
