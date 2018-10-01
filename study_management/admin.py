@@ -1,6 +1,9 @@
 from django.contrib import admin
+from django import forms
 from django.conf import settings
 from . import settings as app_settings
+
+from django.contrib.auth import get_user_model
 
 from easyaudit.admin import CRUDEventAdmin, LoginEventAdmin, RequestEventAdmin
 from easyaudit.models import CRUDEvent, LoginEvent, RequestEvent
@@ -22,9 +25,45 @@ from rest_framework.renderers import JSONRenderer
 
 from .forms import ParticipantAccountGeneratorCreationForm, ParticipantAccountGeneratorChangeForm
 
+UserModel = get_user_model()
+
 admin.site.register(Study)
-admin.site.register(Researcher)
-admin.site.register(LDAPUserToResearcherConverter)
+
+class ResearcherForm(forms.ModelForm):
+
+    def get_user_queryset():
+        return UserModel.objects.filter(participant__isnull=True)
+
+    user = forms.ModelChoiceField(queryset=get_user_queryset())
+
+    class Meta:
+        model = Researcher
+        exclude = ['uuid']
+        widgets = {
+            'studies': forms.widgets.CheckboxSelectMultiple(),
+        }
+
+class ResearcherAdmin(admin.ModelAdmin):
+
+    form = ResearcherForm
+
+
+admin.site.register(Researcher, ResearcherAdmin)
+
+class LDAPUserToResearcherConverterForm(forms.ModelForm):
+
+    class Meta:
+        model = LDAPUserToResearcherConverter
+        exclude = []
+        widgets = {
+            'studies': forms.widgets.CheckboxSelectMultiple(),
+        }
+
+class LDAPUserToResearcherConverterAdmin(admin.ModelAdmin):
+
+    form = LDAPUserToResearcherConverterForm
+
+admin.site.register(LDAPUserToResearcherConverter, LDAPUserToResearcherConverterAdmin)
 
 class PasswordChangeEventAdmin(admin.ModelAdmin):
     list_display = ('user', 'username', 'created_date')
