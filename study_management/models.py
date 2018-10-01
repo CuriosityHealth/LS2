@@ -612,7 +612,6 @@ class ParticipantAccountToken(models.Model):
             tpl = Template(template_string)
             rendered = tpl.render(Context(context))
             logger.debug(rendered)
-            print(rendered)
             return rendered
 
     @staticmethod

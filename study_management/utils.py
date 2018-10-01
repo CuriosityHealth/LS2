@@ -40,9 +40,12 @@ def should_disable_login(username, remote_ip):
 
 def is_researcher(user):
     try:
+        logging.debug(user)
+        logging.debug(user.researcher)
         researcher = user.researcher
         return True
     except Researcher.DoesNotExist:
+        logging.debug('researcher does not exist, returning false')
         return False
 
 def is_participant(user):
