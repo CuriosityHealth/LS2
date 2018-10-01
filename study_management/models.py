@@ -372,7 +372,7 @@ class ParticipantAccountGenerator(models.Model):
 
 class ParticipantAccountGenerationRequestEvent(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
-    generator_id = models.UUIDField(blank=True)
+    generator_id = models.UUIDField(blank=True, null=True)
     remote_ip = models.CharField(max_length=50, null=True, db_index=True)
 
 class ParticipantAccountGenerationTimeout(models.Model):

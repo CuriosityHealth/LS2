@@ -216,14 +216,18 @@ if app_settings.PARTICIPANT_ACCOUNT_GENERATION_ENABLED:
     admin.site.register(ParticipantAccountGenerator, ParticipantAccountGeneratorAdmin)
 
 class ParticipantAccountGenerationTimeoutAdmin(admin.ModelAdmin):
+    list_display = ('remote_ip', 'generator_id', 'created_date', 'disable_until')
     readonly_fields = ('remote_ip', 'generator_id', 'created_date', 'disable_until')
+    list_filter = ('generator_id', 'remote_ip')
 
 
 if app_settings.PARTICIPANT_ACCOUNT_GENERATION_ENABLED:
     admin.site.register(ParticipantAccountGenerationTimeout, ParticipantAccountGenerationTimeoutAdmin)
 
 class ParticipantAccountGenerationRequestEventAdmin(admin.ModelAdmin):
+    list_display = ('generator_id', 'remote_ip', 'created_date', )
     readonly_fields = ('remote_ip', 'generator_id', 'created_date', )
+    list_filter = ('generator_id', )
     # def has_add_permission(self, request):
     #     return False
     #

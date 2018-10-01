@@ -91,11 +91,10 @@ class OldParticipantTokenAuthentication(TokenAuthentication):
 
 class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
-    def disabled_via_timeout(self, generator_id, remote_ip):
+    def disabled_via_timeout(self, remote_ip):
         try:
 
             generation_timeout = ParticipantAccountGenerationTimeout.objects.filter(
-                generator_id=generator_id,
                 remote_ip=remote_ip,
                 disable_until__gt=timezone.now()
             ).latest('disable_until')
@@ -114,7 +113,7 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
             return False
 
         ## check for existing timeout
-        if self.disabled_via_timeout(generator_id, remote_ip):
+        if self.disabled_via_timeout(remote_ip):
             return True
 
         now = timezone.now()
@@ -152,34 +151,12 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
     def authenticate(self, request):
 
-        # now = timezone.now()
-        # since_time = timedelta(minutes=settings.LOGIN_RATE_LIMIT_WINDOW_MINUTES)
-        # earlier = now - since_time
-        #
-        # try:
-        #     failed_login_attempts = LoginEvent.objects.filter(
-        #         username=instance.username,
-        #         remote_ip=instance.remote_ip,
-        #         login_type=LoginEvent.FAILED,
-        #         datetime__gt=earlier,
-        #     )
-        #
-        # except LoginEvent.DoesNotExist:
-        #     return
-        #
-        # logger.info(f'there have been {failed_login_attempts.count()} failed login attempts')
-        # if failed_login_attempts.count() >= settings.LOGIN_RATE_LIMIT_FAILED_ATTEMPTS and \
-        #     should_disable_login(instance.username, instance.remote_ip) == False:
-        #
-        #     logger.info('we should throttle here!!!')
-        #     diable_until = now + timedelta(minutes=settings.LOGIN_RATE_LIMIT_TIMEOUT_MINUTES)
-        #     login_timeout = LoginTimeout.objects.create(
-        #         disable_until=diable_until,
-        #         username=instance.username,
-        #         remote_ip=instance.remote_ip
-        #     )
-
         remote_ip = get_client_ip(request)
+
+        if self.disabled_via_timeout(remote_ip):
+            logger.warn(f'Account generation is throttled')
+            raise AuthenticationFailed("Account generation is temporarily disabled")
+
         ## Log Event Here
         serializer = ParticipantAccountGeneratorAuthenticationSerializer(data=request.data)
         if not serializer.is_valid():
@@ -191,6 +168,7 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
                             remote_ip=remote_ip
                         )
             except:
+                logger.warn(f'Could not create request event')
                 pass
 
             logger.warn(f'Malformed generator id or passphrase')
@@ -219,7 +197,7 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
         if self.should_throttle(generator_id, remote_ip):
             logger.warn(f'Account generation is throttled')
-            return None
+            raise AuthenticationFailed("Account generation is temporarily disabled")
 
         try:
             generator = ParticipantAccountGenerator.objects.get(uuid=generator_id)
@@ -239,70 +217,70 @@ class ParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
 class TokenBasedParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
-    # def disabled_via_timeout(self, generator_id, remote_ip):
-    #     try:
+    def disabled_via_timeout(self, remote_ip):
+        try:
 
-    #         generation_timeout = ParticipantAccountGenerationTimeout.objects.filter(
-    #             generator_id=generator_id,
-    #             remote_ip=remote_ip,
-    #             disable_until__gt=timezone.now()
-    #         ).latest('disable_until')
+            generation_timeout = ParticipantAccountGenerationTimeout.objects.filter(
+                remote_ip=remote_ip,
+                disable_until__gt=timezone.now()
+            ).latest('disable_until')
 
-    #         if generation_timeout != None and generation_timeout.disabled():
-    #             return True
-    #         else:
-    #             return False
+            if generation_timeout != None and generation_timeout.disabled():
+                return True
+            else:
+                return False
 
-    #     except ParticipantAccountGenerationTimeout.DoesNotExist:
-    #         return False
+        except ParticipantAccountGenerationTimeout.DoesNotExist:
+            return False
 
     def should_throttle(self, generator_id, remote_ip):
 
-        return False
+        if settings.PARTICIPANT_ACCOUNT_GENERATOR_LOGIN_RATE_LIMIT_ENABLED == False:
+            return False
 
-        # if settings.PARTICIPANT_ACCOUNT_GENERATOR_LOGIN_RATE_LIMIT_ENABLED == False:
-        #     return False
+        ## check for existing timeout
+        if self.disabled_via_timeout(remote_ip):
+            return True
 
-        # ## check for existing timeout
-        # if self.disabled_via_timeout(generator_id, remote_ip):
-        #     return True
+        now = timezone.now()
+        since_time = timedelta(minutes=settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES)
+        earlier = now - since_time
 
-        # now = timezone.now()
-        # since_time = timedelta(minutes=settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES)
-        # earlier = now - since_time
+        # logger.info(f'minutes {settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES}')
 
-        # # logger.info(f'minutes {settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_WINDOW_MINUTES}')
+        try:
+            generation_requests = ParticipantAccountGenerationRequestEvent.objects.filter(
+                remote_ip=remote_ip,
+                generator_id=generator_id,
+                created_date__gt=earlier
+            )
+        except ParticipantAccountGenerationRequestEvent.DoesNotExist:
+            return False
 
-        # try:
-        #     generation_requests = ParticipantAccountGenerationRequestEvent.objects.filter(
-        #         remote_ip=remote_ip,
-        #         generator_id=generator_id,
-        #         created_date__gt=earlier
-        #     )
-        # except ParticipantAccountGenerationRequestEvent.DoesNotExist:
-        #     return False
+        logger.info(f'there have been {generation_requests.count()} generation requests')
 
-        # logger.info(f'there have been {generation_requests.count()} generation requests')
+        if generation_requests.count() >= settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_REQUESTS:
+            ## we should create a timeout here
+            disable_until = now + timedelta(minutes=settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_TIMEOUT_MINUTES)
+            generation_timeout = \
+                ParticipantAccountGenerationTimeout.objects.create(
+                    generator_id=generator_id,
+                    remote_ip=remote_ip,
+                    disable_until=disable_until
+                )
 
-        # if generation_requests.count() >= settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_REQUESTS:
-        #     ## we should create a timeout here
-        #     disable_until = now + timedelta(minutes=settings.PARTICIPANT_ACCOUNT_GENERATOR_RATE_LIMIT_TIMEOUT_MINUTES)
-        #     generation_timeout = \
-        #         ParticipantAccountGenerationTimeout.objects.create(
-        #             generator_id=generator_id,
-        #             remote_ip=remote_ip,
-        #             disable_until=disable_until
-        #         )
+            logger.debug(generation_timeout)
 
-        #     logger.debug(generation_timeout)
-
-        #     return True
-
-
+            return True
 
     def authenticate(self, request):
         
         remote_ip = get_client_ip(request)
+
+        if self.disabled_via_timeout(remote_ip):
+            logger.warn(f'Account generation is throttled')
+            raise AuthenticationFailed("Account generation is temporarily disabled")
+
         ## Log Event Here
         serializer = TokenBasedParticipantAccountGeneratorAuthenticationSerializer(data=request.data)
         if not serializer.is_valid():
@@ -314,6 +292,7 @@ class TokenBasedParticipantAccountGeneratorAuthentication(BaseAuthentication):
                             remote_ip=remote_ip
                         )
             except:
+                logger.warn(f'Could not create request event')
                 pass
 
             logger.warn(f'Malformed generator id or token')
@@ -342,7 +321,7 @@ class TokenBasedParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
         if self.should_throttle(generator_id, remote_ip):
             logger.warn(f'Account generation is throttled')
-            return None
+            raise AuthenticationFailed("Account generation is temporarily disabled")
 
         participantAccountToken = ParticipantAccountToken.getValidToken(token=token, generator_id=generator_id)
         if participantAccountToken != None:
