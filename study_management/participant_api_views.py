@@ -1,5 +1,5 @@
 from rest_framework import parsers, renderers
-from rest_framework.authtoken.models import Token
+# from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import status
 from rest_framework.response import Response
@@ -16,7 +16,7 @@ from .rest_auth import (
     TokenBasedParticipantAccountGeneratorAuthentication
 )
 from .rest_permissions import ParticipantAccountGeneratorPermission, TokenBasedParticipantAccountGeneratorPermission
-from .models import Datapoint, Participant, ParticipantAccountGenerator
+from .models import Datapoint, Participant, ParticipantAccountGenerator, ParticipantAuthToken
 from .serializers import DatapointSerializer
 
 from easyaudit.settings import REMOTE_ADDR_HEADER
@@ -45,8 +45,7 @@ class ObtainAuthToken(APIView):
             if user is not None:
                 try:
                     participant = user.participant
-                    Token.objects.filter(user=user).delete()
-                    token = Token.objects.create(user=user)
+                    token = ParticipantAuthToken.objects.create(user=user)
 
                     try:
                         with transaction.atomic():
@@ -113,6 +112,7 @@ class ParticipantLogOutView(APIView):
     def post(self, request, format=None):
 
         user = request.user
+        token = request.auth
         try:
             with transaction.atomic():
                 login_event = LoginEvent.objects.create(login_type=LoginEvent.LOGOUT,
@@ -120,7 +120,7 @@ class ParticipantLogOutView(APIView):
                                                         user=user,
                                                         remote_ip=request.META[REMOTE_ADDR_HEADER])
 
-            Token.objects.filter(user=user).delete()
+            token.delete()
         except:
             pass
 

@@ -13,6 +13,7 @@ from .models import (
     ParticipantAccountGenerationTimeout,
     TokenBasedParticipantAccountGenerator,
     ParticipantAccountToken,
+    ParticipantAuthToken
 )
 # Register your models here.
 from django.utils.safestring import mark_safe
@@ -78,6 +79,15 @@ class ParticipantAdmin(admin.ModelAdmin):
     pass
 
 admin.site.register(Participant, ParticipantAdmin)
+class ParticipantAuthTokenAdmin(admin.ModelAdmin):
+
+    list_display = ('key', 'user', 'created', 'last_used')
+    fields = ('user',)
+    readonly_fields = ('user',)
+    ordering = ('-created',)
+    pass
+
+admin.site.register(ParticipantAuthToken, ParticipantAuthTokenAdmin)
 
 class DatapointAdmin(admin.ModelAdmin):
 

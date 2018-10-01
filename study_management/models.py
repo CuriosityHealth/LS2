@@ -162,6 +162,35 @@ class Researcher(models.Model):
         except PasswordChangeEvent.DoesNotExist:
             return False
 
+class ParticipantAuthToken(models.Model):
+
+    """
+    The user  authorization token based on the Django Rest token.
+    The main difference is here that user is not one-to-one, i.e., a user can have muiltiple tokens
+    """
+    key = models.CharField(_("Key"), max_length=64, primary_key=True)
+    user = models.ForeignKey(
+        User, related_name='participant_auth_token',
+        on_delete=models.CASCADE, verbose_name=_("User")
+    )
+    last_used = models.DateTimeField(_("Last Used"), auto_now_add=True)
+    created = models.DateTimeField(_("Created"), auto_now_add=True)
+
+    class Meta:
+
+        verbose_name = _("Participant Auth Token")
+        verbose_name_plural = _("Participant Auth Token")
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+        return super(ParticipantAuthToken, self).save(*args, **kwargs)
+
+    def generate_key(self):
+        return secrets.token_hex(32)
+
+    def __str__(self):
+        return self.key
 
 class Participant(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)

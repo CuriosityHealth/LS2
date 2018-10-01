@@ -1,5 +1,7 @@
 * 1.8.0
     * Added token-based participant account generation
+    * Added support for multiple tokens per participant
+    * Added support for downloading participant mapping 
     * Fixed some issues with development logging
 * 1.7.3
     * Fixed issues where crashes would sometimes occur in Admin portal during password change & logout

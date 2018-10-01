@@ -8,13 +8,15 @@ from .models import (
     ParticipantAccountGenerator,
     ParticipantAccountGenerationRequestEvent,
     ParticipantAccountGenerationTimeout,
-    ParticipantAccountToken
+    ParticipantAccountToken,
+    ParticipantAuthToken
 )
 from .serializers import (
     TokenBasedParticipantAccountGeneratorAuthenticationSerializer,
     ParticipantAccountGeneratorAuthenticationSerializer
 )
 
+from django.utils import timezone
 from django.db import IntegrityError, transaction
 from easyaudit.settings import REMOTE_ADDR_HEADER
 
@@ -41,11 +43,19 @@ class ResearcherSessionAuthentication(SessionAuthentication):
 
 class ParticipantTokenAuthentication(TokenAuthentication):
 
+    def get_model(self):
+        return ParticipantAuthToken
+
     def authenticate(self, request):
 
-        user_tuple = super().authenticate(request)
-        if user_tuple != None and is_participant(user_tuple[0]):
-            return user_tuple
+        auth_tuple = super().authenticate(request)
+        if auth_tuple != None and is_participant(auth_tuple[0]):
+            user = auth_tuple[0]
+            token = auth_tuple[1]
+            token.last_used = timezone.now()
+            token.save()
+            logging.debug(f'Authenticating user {user}')
+            return auth_tuple
 
         else:
             return None
