@@ -30,6 +30,7 @@ class ResearcherAuthenticationForm(AuthenticationForm):
         logger.debug(f'Confirming that {user} is allowed to log in')
         if not is_researcher(user):
 
+            logger.debug(f'{user} is not a researcher')
             ## check to see if an LDAP user
             if getattr(user, "ldap_username", None) != None:
                 logger.debug(f'Confirming that {user} is an LDAP user but not yet a researcher')
@@ -63,19 +64,27 @@ class ResearcherAuthenticationForm(AuthenticationForm):
                         params={'username': self.username_field.verbose_name},
                     )
 
-        logger.debug(f'{user} is a researcher')
-        researcher = user.researcher
-        if researcher.is_ldap_user():
-            logger.info(f'{user} is a researcher')
-            return
+            else:
+                raise forms.ValidationError(
+                        self.error_messages['invalid_login'],
+                        code='invalid_login',
+                        params={'username': self.username_field.verbose_name},
+                    )
 
         else:
-            logger.info(f'Confirming that {user} is allowed to log in')
-            if not researcher.password_age_is_valid():
-                raise forms.ValidationError(
-                    f'PermissionDenied: Password too old!!',
-                    code='password_age'
-                )
+            logger.debug(f'{user} is a researcher')
+            researcher = user.researcher
+            if researcher.is_ldap_user():
+                logger.info(f'{user} is a researcher')
+                return
+
+            else:
+                logger.info(f'Confirming that {user} is allowed to log in')
+                if not researcher.password_age_is_valid():
+                    raise forms.ValidationError(
+                        f'PermissionDenied: Password too old!!',
+                        code='password_age'
+                    )
 
     def clean(self):
 
