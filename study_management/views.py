@@ -1,4 +1,4 @@
-from django.conf import settings
+from . import settings
 from django.shortcuts import render, redirect
 from .models import Researcher, Participant, Study, TokenBasedParticipantAccountGenerator, ParticipantAccountToken
 # from django.contrib.auth.decorators import login_required
@@ -134,17 +134,10 @@ def token_based_participant_account_generator(request, study_uuid, generator_uui
     except TokenBasedParticipantAccountGenerator.DoesNotExist:
         return render(request, '404.html')
 
-    context = {'study': study, 'generator': generator}
-    token_id = request.GET.get('token_id', None)
-    logger.debug(token_id)
-    if token_id != None:
-        new_token = ParticipantAccountToken.getTokenByUUID(
-            token_id=token_id,
-            generator_id=generator_uuid
-        )
-        if new_token != None:
-            logger.debug(new_token)
-            context['new_token'] = new_token
+    context = {
+        'study': study, 
+        'generator': generator
+    }
 
     if request.method == "POST":
 
@@ -152,17 +145,37 @@ def token_based_participant_account_generator(request, study_uuid, generator_uui
             messages.error(request, 'The token generator is disabled. Please contact the administrator.')
             return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=403)
 
-        new_token = generator.generate_token()
-        if new_token != None:
+        view_token = generator.generate_token()
+        if view_token != None:
 
-            logger.debug(request.path)
-            redirect_path = f'{request.path}?token_id={new_token}'
-            logger.debug(redirect_path)
-            return redirect(redirect_path)
+            context['obfuscate_token'] = False
+            context['view_token'] = view_token
+
+            return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=201)
+
+            # logger.debug(request.path)
+            # redirect_path = f'{request.path}?token_id={new_token}'
+            # logger.debug(redirect_path)
+            # return redirect(redirect_path)
          
         else:
             messages.error(request, 'Could not generate a unique token. Please try again later.')
             return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=409)
         
     else:
+
+        token_id = request.GET.get('token_id', None)
+        context['obfuscate_token'] = settings.PARTICIPANT_ACCOUNT_GENERATOR_OBFUSCATE_TOKENS
+        logger.debug(token_id)
+        if token_id != None:
+            view_token = ParticipantAccountToken.getTokenByUUID(
+                token_id=token_id,
+                generator_id=generator_uuid
+            )
+
+            if view_token != None:
+                logger.debug(view_token)
+                
+                context['view_token'] = view_token
+
         return render(request, 'study_management/token_based_participant_account_generator_detail.html', context=context, status=200)

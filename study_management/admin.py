@@ -2,6 +2,14 @@ from django.contrib import admin
 from django import forms
 from django.conf import settings
 from . import settings as app_settings
+from datetime import datetime, timedelta
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+from django.shortcuts import render
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+
+from django.urls import reverse
 
 from django.contrib.auth import get_user_model
 
@@ -24,6 +32,10 @@ from .serializers import DatapointSerializer
 from rest_framework.renderers import JSONRenderer
 
 from .forms import ParticipantAccountGeneratorCreationForm, ParticipantAccountGeneratorChangeForm
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()
 
@@ -164,6 +176,70 @@ class DatapointAdmin(admin.ModelAdmin):
 if settings.DEBUG:
     admin.site.register(Datapoint, DatapointAdmin)
 
+class LS2AuditEventAdminHelper():
+
+    @staticmethod
+    def audit_log_retention_days():
+        return getattr(app_settings, 'AUDIT_LOG_RETENTION_DAYS', 90)
+
+    @staticmethod
+    def objects_to_purge(model, retention_time):
+            return model.objects.filter(datetime__lt=timezone.now() - retention_time)
+
+    @staticmethod
+    def truncate_table(model, retention_time):
+        results = LS2AuditEventAdminHelper.objects_to_purge(model, retention_time)
+        results.delete()
+
+    # Helper view to remove all rows in a table
+    @staticmethod
+    def purge_objects(request, modeladmin):
+        """
+        Removes all objects in this table.
+        This action first displays a confirmation page;
+        next, it deletes all objects and redirects back to the change list.
+        """
+
+        audit_log_retention_days = LS2AuditEventAdminHelper.audit_log_retention_days()
+        audit_log_retention_time = timedelta(days=audit_log_retention_days)
+
+        # modeladmin = self
+        opts = modeladmin.model._meta
+
+        # Check that the user has delete permission for the actual model
+        if not request.user.is_superuser:
+           raise PermissionDenied
+        if not modeladmin.has_delete_permission(request):
+            raise PermissionDenied
+
+        # If the user has already confirmed or cancelled the deletion,
+        # (eventually) do the deletion and return to the change list view again.
+        if request.method == 'POST':
+            if 'btn-confirm' in request.POST:
+                try:
+                    n = LS2AuditEventAdminHelper.objects_to_purge(modeladmin.model, audit_log_retention_time).count()
+                    LS2AuditEventAdminHelper.truncate_table(modeladmin.model, audit_log_retention_time)
+                    modeladmin.message_user(request, _("Successfully removed %d rows" % n), messages.SUCCESS);
+                except Exception as e:
+                    modeladmin.message_user(request, _(u'ERROR') + ': %r' % e, messages.ERROR)
+            else:
+                modeladmin.message_user(request, _("Action cancelled by user"), messages.SUCCESS);
+            return HttpResponseRedirect(reverse('admin:%s_%s_changelist' % (opts.app_label, opts.model_name)))
+
+        context = {
+            "title": _("Purge all %s older than %d days... are you sure?") % (opts.verbose_name_plural, audit_log_retention_days),
+            "opts": opts,
+            "app_label": opts.app_label,
+            "retention_days": audit_log_retention_days,
+        }
+
+        # Display the confirmation page
+        return render(
+            request,
+            'admin/study_management/purge_confirmation.html',
+            context
+        )
+
 class LS2CRUDEventAdmin(CRUDEventAdmin):
     def has_add_permission(self, request):
         return False
@@ -172,10 +248,19 @@ class LS2CRUDEventAdmin(CRUDEventAdmin):
         return True
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return request.user.is_superuser
 
     def has_module_permission(self, request):
         return True
+
+    change_list_template = "admin/study_management/change_list.html"
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['retention_days'] = LS2AuditEventAdminHelper.audit_log_retention_days()
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def purge_objects(self, request):
+        return LS2AuditEventAdminHelper.purge_objects(request, self)
 
 admin.site.register(CRUDEvent, LS2CRUDEventAdmin)
 
@@ -187,10 +272,19 @@ class LS2LoginEventAdmin(LoginEventAdmin):
         return True
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return request.user.is_superuser
 
     def has_module_permission(self, request):
         return True
+
+    change_list_template = "admin/study_management/change_list.html"
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['retention_days'] = LS2AuditEventAdminHelper.audit_log_retention_days()
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def purge_objects(self, request):
+        return LS2AuditEventAdminHelper.purge_objects(request, self)
 
 admin.site.register(LoginEvent, LS2LoginEventAdmin)
 
@@ -202,10 +296,19 @@ class LS2RequestEventAdmin(RequestEventAdmin):
         return True
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return request.user.is_superuser
 
     def has_module_permission(self, request):
         return True
+
+    change_list_template = "admin/study_management/change_list.html"
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['retention_days'] = LS2AuditEventAdminHelper.audit_log_retention_days()
+        return super().changelist_view(request, extra_context=extra_context)
+        
+    def purge_objects(self, request):
+        return LS2AuditEventAdminHelper.purge_objects(request, self)
 
 admin.site.register(RequestEvent, LS2RequestEventAdmin)
 

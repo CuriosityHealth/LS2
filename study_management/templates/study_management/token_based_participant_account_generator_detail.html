@@ -39,39 +39,43 @@
       </div>
     </div>
 
-    {% if new_token %}
+    {% if view_token %}
 
       <div class="row ls2-subcontainer">
         <div class="col-md-8 center-block">
           <table class="table table-borderd ls2-table" style="width:100%">
             <tr class="ls2-cell">
                 <th>Token</th>
-                <td>{{ new_token.token }}</td>
+                {% if obfuscate_token %}
+                <td>{{ view_token.redacted_token}}</td>
+                {% else %}
+                <td>{{ view_token.token }}</td>
+                {% endif %}
             </tr>
             <tr class="ls2-cell">
                 <th>Username</th>
-                <td>{{ new_token.username }}</td>
+                <td>{{ view_token.username }}</td>
             </tr>
             <tr class="ls2-cell">
                 <th>Created</th>
-                <td>{{ new_token.created_date_time }}</td>
+                <td>{{ view_token.created_date_time }}</td>
             </tr>
             <tr class="ls2-cell">
                 <th>Expiration</th>
-                <td>{{ new_token.expiration_date_time }}</td>
+                <td>{{ view_token.expiration_date_time }}</td>
             </tr>
             <tr class="ls2-cell">
                 <th>Used</th>
-                {% if new_token.used_date_time %}
-                <td>{{ new_token.used_date_time }}</td>
+                {% if view_token.used_date_time %}
+                <td>{{ view_token.used_date_time }}</td>
                 {% else %}
                 <td></td>
                 {% endif %}
             </tr>
-            {% if new_token.url %}
+            {% if view_token.url and not obfuscate_token %}
             <tr class="ls2-cell">
                 <th>Deep Link</th>
-                <td>{{ new_token.url }}</td>
+                <td>{{ view_token.url }}</td>
             </tr>
             {% endif %}
           </table>

@@ -279,7 +279,7 @@ class TokenBasedParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
         if self.disabled_via_timeout(remote_ip):
             logger.warn(f'Account generation is throttled')
-            raise AuthenticationFailed("Account generation is temporarily disabled")
+            raise AuthenticationFailed("2: Account generation is temporarily disabled")
 
         ## Log Event Here
         serializer = TokenBasedParticipantAccountGeneratorAuthenticationSerializer(data=request.data)
@@ -296,7 +296,7 @@ class TokenBasedParticipantAccountGeneratorAuthentication(BaseAuthentication):
                 pass
 
             logger.warn(f'Malformed generator id or token')
-            return None
+            raise AuthenticationFailed("3: The request is missing token or generator_id")
 
         # logger.debug(serializer.validated_data)
 
@@ -317,14 +317,15 @@ class TokenBasedParticipantAccountGeneratorAuthentication(BaseAuthentication):
 
         if generator_id == None or token == None:
             logger.warn(f'Missing generator id or token')
+            raise AuthenticationFailed("3: The request is missing token or generator_id")
             return None
 
         if self.should_throttle(generator_id, remote_ip):
             logger.warn(f'Account generation is throttled')
-            raise AuthenticationFailed("Account generation is temporarily disabled")
+            raise AuthenticationFailed("2: Account generation is temporarily disabled")
 
         participantAccountToken = ParticipantAccountToken.getValidToken(token=token, generator_id=generator_id)
         if participantAccountToken != None:
             return (participantAccountToken, None)
-
-        return None
+        else:
+            raise AuthenticationFailed("1: The token is invalid")

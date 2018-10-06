@@ -1,3 +1,9 @@
+* 1.9.0
+    * Improved audit event admin by adding support for purging events older than configured retention window
+    * Added setting to obfuscate participant account generation tokens after creation
+    * Added error codes to token based participant account generation authentication to support client error handling
+    * Removed password change link in the case that the user authenticated via LDAP
+    * Updated Django dependency
 * 1.8.0
     * Added token-based participant account generation
     * Added support for multiple tokens per participant
