@@ -253,7 +253,7 @@ class LS2CRUDEventAdmin(CRUDEventAdmin):
     def has_module_permission(self, request):
         return True
 
-    change_list_template = "admin/study_management/change_list.html"
+    change_list_template = "admin/study_management/audit_event_change_list.html"
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['retention_days'] = LS2AuditEventAdminHelper.audit_log_retention_days()
@@ -277,7 +277,7 @@ class LS2LoginEventAdmin(LoginEventAdmin):
     def has_module_permission(self, request):
         return True
 
-    change_list_template = "admin/study_management/change_list.html"
+    change_list_template = "admin/study_management/audit_event_change_list.html"
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['retention_days'] = LS2AuditEventAdminHelper.audit_log_retention_days()
@@ -301,7 +301,7 @@ class LS2RequestEventAdmin(RequestEventAdmin):
     def has_module_permission(self, request):
         return True
 
-    change_list_template = "admin/study_management/change_list.html"
+    change_list_template = "admin/study_management/audit_event_change_list.html"
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['retention_days'] = LS2AuditEventAdminHelper.audit_log_retention_days()
