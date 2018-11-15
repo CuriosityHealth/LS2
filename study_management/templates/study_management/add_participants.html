@@ -44,6 +44,6 @@
     </div>
   </div>
 
-  {% include "study_management/participant_table.html" with study=study data_export_enabled=False only %}
+  {% include "study_management/participant_table.html" with study=study participants=participants sort=sort data_export_enabled=False request=request only %}
 
 {% endblock %}

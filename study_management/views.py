@@ -11,6 +11,8 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 
 from health_check.views import MainView
+from datetime import datetime
+from django.utils import timezone
 
 import logging
 
@@ -49,6 +51,58 @@ def home(request):
 
     return render(request, 'study_management/researcher_home.html', context)
 
+
+def last_upload_date_for_sort(participant):
+    last_upload_date = participant.last_datapoint_submission_date()
+    if last_upload_date == None:
+        return datetime.min
+    else:
+        return timezone.make_naive(last_upload_date)
+
+def sort_participants(participants, sort):
+    if sort == None:
+        return participants
+
+    if sort == 'username':
+        key = lambda x: x.user.username
+        return sorted(participants, key=key)
+
+    if sort == '-username':
+        key = lambda x: x.user.username
+        return sorted(participants, key=key, reverse=True)
+
+    if sort == 'participant_label':
+        key = lambda x: x.label
+        return sorted(participants, key=key)
+
+    if sort == '-participant_label':
+        key = lambda x: x.label
+        return sorted(participants, key=key, reverse=True)
+
+    if sort == 'participant_id':
+        key = lambda x: x.uuid
+        return sorted(participants, key=key)
+
+    if sort == '-participant_id':
+        key = lambda x: x.uuid
+        return sorted(participants, key=key, reverse=True)
+
+    if sort == 'date_joined':
+        key = lambda x: x.user.date_joined
+        return sorted(participants, key=key)
+
+    if sort == '-date_joined':
+        key = lambda x: x.user.date_joined
+        return sorted(participants, key=key, reverse=True)
+
+    if sort == 'last_upload':
+        return sorted(participants, key=last_upload_date_for_sort)
+
+    if sort == '-last_upload':
+        return sorted(participants, key=last_upload_date_for_sort, reverse=True)
+
+    return participants
+
 @researcher_login_required
 @researcher_changed_password
 def study_detail(request, study_uuid):
@@ -60,8 +114,13 @@ def study_detail(request, study_uuid):
     except Study.DoesNotExist:
         return render(request, '404.html')
 
+    sort = request.GET.get('sort')
+    sorted_particpiants = sort_participants(study.participant_set.all(), request.GET.get('sort'))
+
     context = {
         'study': study,
+        'participants': sorted_particpiants,
+        'sort': sort,
         'data_download_default': settings.DATA_DOWNLOAD_DEFAULT,
         'data_export_enabled': settings.DATA_EXPORT_ENABLED,
     }
@@ -82,7 +141,14 @@ def add_participants(request, study_uuid):
     except Study.DoesNotExist:
         return render(request, '404.html')
 
-    context = {'study': study}
+    sort = request.GET.get('sort')
+    sorted_particpiants = sort_participants(study.participant_set.all(), request.GET.get('sort'))
+
+    context = {
+        'study': study,
+        'participants': sorted_particpiants,
+        'sort': sort,
+    }
 
     if request.method == "POST":
         form = ParticipantCreationForm(request.POST)

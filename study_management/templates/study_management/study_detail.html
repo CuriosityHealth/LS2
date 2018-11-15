@@ -60,6 +60,6 @@
       </div>
     </div>
 
-  {% include "study_management/participant_table.html" with study=study data_export_enabled=data_export_enabled data_download_default=data_download_default only %}
+  {% include "study_management/participant_table.html" with study=study participants=participants sort=sort data_export_enabled=data_export_enabled data_download_default=data_download_default request=request only %}
 
 {% endblock %}
