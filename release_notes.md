@@ -1,3 +1,7 @@
+* 1.10.0
+    * Added Description field to account generators
+    * Added sorting capability to participant table
+    * Updated dependencies
 * 1.9.0
     * Improved audit event admin by adding support for purging events older than configured retention window
     * Added setting to obfuscate participant account generation tokens after creation
