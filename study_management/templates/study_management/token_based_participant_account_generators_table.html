@@ -3,14 +3,16 @@
   <div class="col-md-8 center-block">
     <table class="table table-borderd ls2-table" style="width:100%">
       <tr>
-        <th>Generator ID</th>
+        <th>Generator Description</th>
+        <th>ID</th>
         <th>Token Format</th>
         <th>Token Size</th>
       </tr>
 
       {% for generator in study.tokenbasedparticipantaccountgenerator_set.all %}
         <tr class="ls2-cell">
-          <td><a href="{% url 'token_based_participant_account_generator' study_uuid=study.uuid generator_uuid=generator.uuid %}">{{ generator.uuid }}</a></td>
+          <td><a href="{% url 'token_based_participant_account_generator' study_uuid=study.uuid generator_uuid=generator.uuid %}">{{ generator.description }}</a></td>
+          <td>{{ generator.uuid }}</td>
           <td>{{ generator.get_token_format_display }}</td>
           <td>{{ generator.token_size }}</td>
         </tr>

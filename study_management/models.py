@@ -268,6 +268,8 @@ class ParticipantAccountGenerator(models.Model):
     is_active = models.BooleanField(default=True)
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
+    description = models.CharField(max_length=200, blank=True)
+
     study = models.ForeignKey(Study, on_delete=models.PROTECT)
     generator_password = models.CharField(max_length=128)
     _generator_password = None
@@ -391,6 +393,8 @@ class TokenBasedParticipantAccountGenerator(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+
+    description = models.CharField(max_length=200, blank=True)
 
     study = models.ForeignKey(Study, on_delete=models.PROTECT)
 

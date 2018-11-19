@@ -333,7 +333,7 @@ class ParticipantAccountGeneratorAdmin(admin.ModelAdmin):
     #         return self.add_fieldsets
     #     return super().get_fieldsets(request, obj)
 
-    list_display = ('__str__', 'study', 'number_of_participants_created', 'max_participants_to_create')
+    list_display = ('__str__', 'study', 'description')
 
     def get_readonly_fields(self, request, obj=None):
         if not obj:
@@ -387,6 +387,7 @@ if app_settings.PARTICIPANT_ACCOUNT_GENERATION_ENABLED:
 
 class TokenBasedParticipantAccountGeneratorAdmin(admin.ModelAdmin):
     # readonly_fields = ()
+    list_display = ('__str__', 'study', 'description')
     pass
 
 class ParticipantAccountTokenAdmin(admin.ModelAdmin):
