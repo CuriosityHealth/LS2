@@ -1,2 +1,2 @@
-pyodbc==4.0.24
+pyodbc==4.0.25
 django-pyodbc-azure==2.1.0.0

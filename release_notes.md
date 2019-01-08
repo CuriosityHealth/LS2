@@ -1,3 +1,5 @@
+* 1.10.1
+    * Updated dependencies
 * 1.10.0
     * Added Description field to account generators
     * Added sorting capability to participant table
