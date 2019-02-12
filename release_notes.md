@@ -1,4 +1,6 @@
-* 1.10.1
+* 1.10.2
+    * Updated dependencies* 
+1.10.1
     * Updated dependencies
 * 1.10.0
     * Added Description field to account generators
