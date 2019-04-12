@@ -1,3 +1,7 @@
+* 1.10.4
+    * Added support for displaying version number on study management portal
+    * Added new command to generate a new random fernet key
+    * Updated dependencies
 * 1.10.3
     * Added commands
 * 1.10.2
