@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 from django.core.exceptions import ImproperlyConfigured
 from . import database_settings
+from . import application_version_settings
 from . import authentication_settings
 from . import admin_portal_settings
 from . import study_management_portal_settings
@@ -181,6 +182,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'study_management.context_processors.application_version_processor'
             ],
         },
     },
@@ -329,6 +331,9 @@ LOGGING = {
     }
 }
 
+extra_application_version_settings = application_version_settings.get_additional_settings(environ)
+for (key, value) in extra_application_version_settings.items():
+    globals()[key] = value
 
 extra_database_settings = database_settings.get_database_settings(environ)
 for (key, value) in extra_database_settings.items():

@@ -66,6 +66,12 @@ body {
   padding-right: 0px;
 }
 
+.ls2-container-version {
+  position: absolute;
+  bottom: 4;
+  right: 12;
+}
+
 
 .ls2-subheader {
   width: 100%;
