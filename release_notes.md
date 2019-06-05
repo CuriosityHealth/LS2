@@ -1,3 +1,5 @@
+* 1.10.6
+    * Updated dependencies
 * 1.10.5
     * Updated dependencies
 * 1.10.4
