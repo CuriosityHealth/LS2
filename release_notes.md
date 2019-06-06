@@ -1,3 +1,5 @@
+* 1.10.7
+    * Updated easy audit and added support for filtering of fields in CRUD audit events
 * 1.10.6
     * Updated dependencies
 * 1.10.5
