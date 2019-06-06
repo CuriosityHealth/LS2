@@ -21,6 +21,7 @@ from . import participant_api_settings
 from . import health_check_settings
 from study_management import database_routers
 from . import settings_backend
+from study_management.easy_audit_serializers import custom_easy_audit_serializer, easy_audit_model_delta_callback
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -361,6 +362,9 @@ DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = [
     'authtoken.Token',
     'db.TestModel',
 ]
+
+DJANGO_EASY_AUDIT_CRUD_OBJECT_JSON_REPR_SERIALIZER_OVERRIDE = custom_easy_audit_serializer
+DJANGO_EASY_AUDIT_CRUD_OBJECT_MODEL_DELTA_CALLBACK = easy_audit_model_delta_callback
 
 DJANGO_EASY_AUDIT_UNREGISTERED_URLS_EXTRA = [
     r'^/ht/'

@@ -3,7 +3,7 @@ cffi==1.12.3
 Django==2.2.2
 django-filter==2.1.0
 djangorestframework==3.9.4
-git+https://github.com/soynatan/django-easy-audit@3518a7b3d6225f6b0340c920ebedfad9490eafe1
+git+https://github.com/jdkizer9/django-easy-audit@c9e01f9938c47324a2f84f19117a8538e693c24f
 django-session-security==2.6.5
 gunicorn==19.9.0
 psycopg2-binary==2.8.2
