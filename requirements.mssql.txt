@@ -1,2 +1,2 @@
-pyodbc==4.0.27
-django-mssql-backend==2.5.0
+pyodbc==4.0.28
+django-mssql-backend==2.7.0

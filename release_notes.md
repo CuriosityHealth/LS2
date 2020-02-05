@@ -1,3 +1,5 @@
+* 1.10.13
+    * Updated dependencies
 * 1.10.12
     * Updated dependencies, changed django-pyodbc-azure -> django-mssql-backend to support Django 2.2
 * 1.10.11
