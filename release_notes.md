@@ -1,3 +1,5 @@
+* 1.10.14
+    * Updated dependencies
 * 1.10.13
     * Updated dependencies
 * 1.10.12
