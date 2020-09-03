@@ -1,8 +1,8 @@
-bcrypt==3.1.7
-cffi==1.14.0
-Django==2.2.14
+bcrypt==3.2.0
+cffi==1.14.2
+Django==2.2.16
 django-filter==2.3.0
-djangorestframework==3.11.0
+djangorestframework==3.11.1
 git+https://github.com/jdkizer9/django-easy-audit@b8de43caa9de35c92c72acf5d934e5e465474b80
 django-session-security==2.6.6
 gunicorn==20.0.4
@@ -10,7 +10,7 @@ psycopg2-binary==2.8.5
 pycparser==2.20
 pytz==2020.1
 six==1.15.0
-arrow==0.15.7
+arrow==0.16.0
 django-health-check==3.12.1
 django-fernet-fields==0.6
 django-auth-ldap==2.2.0
