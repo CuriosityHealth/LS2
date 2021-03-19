@@ -2,7 +2,7 @@ bcrypt==3.2.0
 cffi==1.14.2
 Django==2.2.16
 django-filter==2.3.0
-djangorestframework==3.11.1
+djangorestframework==3.11.2
 git+https://github.com/jdkizer9/django-easy-audit@b8de43caa9de35c92c72acf5d934e5e465474b80
 django-session-security==2.6.6
 gunicorn==20.0.4
