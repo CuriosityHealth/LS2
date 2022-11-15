@@ -16,3 +16,4 @@ django-fernet-fields==0.6
 django-auth-ldap==2.4.0
 python-ldap==3.3.1
 boto3==1.17.46
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
